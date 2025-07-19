@@ -1,11 +1,11 @@
 package com.tech.eventix.api.model
 
 data class EventEmbedded(
-    val venues: List<Venue>,
+    val venues: List<NetworkVenue>,
     val attractions: List<Attraction>
 )
 
-data class Venue(
+data class NetworkVenue(
     val name: String,
     val type: String,
     val id: String,
@@ -15,10 +15,10 @@ data class Venue(
     val images: List<Image>?,
     val postalCode: String?,
     val timezone: String?,
-    val city: City?,
-    val state: State?,
+    val city: City,
+    val state: State,
     val country: Country?,
-    val address: Address?,
+    val address: Address,
     val location: Location?,
     val markets: List<Market>?,
     val dmas: List<Dma>?,

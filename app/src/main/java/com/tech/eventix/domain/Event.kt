@@ -5,5 +5,5 @@ data class Event(
     val imageUrl: String,
     val date: String,
     val time: String,
-    val location: String
+    val venue: Venue
 ) 
