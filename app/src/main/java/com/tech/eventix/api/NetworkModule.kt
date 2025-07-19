@@ -14,5 +14,5 @@ object NetworkModule {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val eventApiService: EventApiService = retrofit.create(EventApiService::class.java)
+    val remoteDataSource: RemoteDataSource = retrofit.create(RemoteDataSource::class.java)
 } 

@@ -1,6 +1,6 @@
 package com.tech.eventix.api.model
 
-data class Event(
+data class NetworkEvent(
     val name: String,
     val type: String,
     val id: String,
