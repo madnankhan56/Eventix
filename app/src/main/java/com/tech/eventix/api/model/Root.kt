@@ -7,7 +7,7 @@ data class Root(
 )
 
 data class RootEmbedded(
-    val networkEvents: List<NetworkEvent>
+    val events: List<NetworkEvent>
 )
 
 data class RootLinks(

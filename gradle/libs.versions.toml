@@ -16,6 +16,8 @@ okhttp = "4.9.3"
 hilt = "2.57"
 hilt_compiler = "2.57"
 ksp = "2.0.21-1.0.26"
+flipper = "0.187.1"
+soLoader = "0.10.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +41,12 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt_compiler" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+
+flipper = {group = "com.facebook.flipper", name = "flipper", version.ref = "flipper" }
+flipper-noop = {group = "com.facebook.flipper", name = "flipper-noop", version.ref = "flipper" }
+flippernetworkplugin = {group = "com.facebook.flipper", name = "flipper-network-plugin", version.ref = "flipper" }
+soLoader = {group = "com.facebook.soloader", name = "soloader", version.ref = "soLoader" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

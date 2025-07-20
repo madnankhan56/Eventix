@@ -68,6 +68,11 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.hilt.navigation.compose)
 
+    debugImplementation(libs.flippernetworkplugin)
+    debugImplementation(libs.flipper)
+    debugImplementation(libs.soLoader)
+    releaseImplementation(libs.flipper.noop)
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
