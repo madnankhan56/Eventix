@@ -8,12 +8,14 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
 composeBom = "2024.09.00"
+coil = "2.6.0"
+hilt-navigation-compose = "1.2.0"
 retrofit = "2.9.0"
 gsonConverter = "2.9.0"
 okhttp = "4.9.3"
 hilt = "2.57"
 hilt_compiler = "2.57"
-ksp = "2.1.10-1.0.30"
+ksp = "2.0.0-1.0.23"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +37,8 @@ converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ve
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt_compiler" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
