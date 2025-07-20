@@ -14,7 +14,7 @@ class EventRepositoryImpl @Inject constructor(
 ) : EventRepository {
     override fun getEvents(page: Int?, size: Int?): Flow<ResultState<List<Event>>> = flow {
         val apiKey = BuildConfig.API_KEY
-        val result = apiService.getEvents(page, size, apiKey = apiKey)
+        val result = apiService.getEvents(0, 20, apiKey = apiKey)
         val events = result._embedded.networkEvents
         val domainEvents = events.map { it.toDomain() }
         emit(domainEvents)

@@ -15,7 +15,7 @@ gsonConverter = "2.9.0"
 okhttp = "4.9.3"
 hilt = "2.57"
 hilt_compiler = "2.57"
-ksp = "2.0.0-1.0.23"
+ksp = "2.0.21-1.0.26"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

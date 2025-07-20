@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,13 +21,14 @@ import com.tech.eventix.uistate.EventUiState
 import com.tech.eventix.uistate.EventsScreenUiState
 import com.tech.eventix.viewmodel.EventViewModel
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun EventsScreen(
     viewModel: EventViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.eventsScreenUiState.collectAsState()
+    val uiState by viewModel.eventsScreenUiState.collectAsStateWithLifecycle()
     EventsScreenContent(uiState = uiState, modifier = modifier)
 }
 

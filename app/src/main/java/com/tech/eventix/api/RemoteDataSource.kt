@@ -7,8 +7,8 @@ import retrofit2.http.Query
 interface RemoteDataSource {
     @GET("discovery/v2/events.json")
     suspend fun getEvents(
-        @Query("page") page: Int? = null,
-        @Query("size") size: Int? = null,
+        @Query("page") page: Int? = 1,
+        @Query("size") size: Int? = 20,
         @Query("countryCode") countryCode: String = "US",
         @Query("apikey") apiKey: String
     ): Root
