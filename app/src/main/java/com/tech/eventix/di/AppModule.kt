@@ -15,6 +15,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 import com.tech.eventix.logging.FlipperInterceptorFactory
+import com.tech.eventix.repository.ApiKeyProvider
+import com.tech.eventix.repository.BuildConfigApiKeyProvider
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -51,6 +53,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideEventRepository(remoteDataSource: RemoteDataSource): EventRepository =
-        EventRepositoryImpl(remoteDataSource)
+    fun provideApiKeyProvider(): ApiKeyProvider = BuildConfigApiKeyProvider()
+
+    @Provides
+    @Singleton
+    fun provideEventRepository(
+        remoteDataSource: RemoteDataSource,
+        apiKeyProvider: ApiKeyProvider
+    ): EventRepository =
+        EventRepositoryImpl(remoteDataSource, apiKeyProvider)
 } 

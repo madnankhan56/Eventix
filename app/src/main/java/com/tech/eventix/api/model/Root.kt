@@ -4,7 +4,11 @@ data class Root(
     val _embedded: RootEmbedded,
     val _links: RootLinks,
     val page: Page
-)
+){
+    fun getEvents() = _embedded.events
+
+    fun getLinks() = _links
+}
 
 data class RootEmbedded(
     val events: List<NetworkEvent>
