@@ -27,13 +27,17 @@ class GetEventsUseCase @Inject constructor(
                         event.venue.state.isNotEmpty() &&
                         event.venue.address.isNotEmpty() &&
                         !event.test
-                    }.map { event ->
+                    }
+                    val sortedEvents = filteredEvents.sortedWith(compareBy(
+                        { LocalDate.parse(it.date) },
+                        { LocalTime.parse(it.time) }
+                    )).map { event ->
                         event.copy(
                             date = formatDate(event.date),
                             time = formatTime(event.time)
                         )
                     }
-                    ResultState.Success(filteredEvents)
+                    ResultState.Success(sortedEvents)
                 }
                 is ResultState.Error -> result
                 is ResultState.Loading -> result
