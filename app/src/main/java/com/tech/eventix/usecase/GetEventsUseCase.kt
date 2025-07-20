@@ -14,7 +14,7 @@ import javax.inject.Inject
 class GetEventsUseCase @Inject constructor(
     private val repository: EventRepository
 ) {
-    suspend operator fun invoke(page: Int? = null, size: Int? = null): Flow<ResultState<List<Event>>> {
+     operator fun invoke(page: Int? = null, size: Int? = null): Flow<ResultState<List<Event>>> {
         return repository.getEvents(page, size).map { result ->
             when (result) {
                 is ResultState.Success -> {

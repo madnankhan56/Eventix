@@ -12,7 +12,7 @@ import javax.inject.Inject
 class EventRepositoryImpl @Inject constructor(
     private val apiService: RemoteDataSource
 ) : EventRepository {
-    override suspend fun getEvents(page: Int?, size: Int?): Flow<ResultState<List<Event>>> = flow {
+    override fun getEvents(page: Int?, size: Int?): Flow<ResultState<List<Event>>> = flow {
         val apiKey = BuildConfig.API_KEY
         val result = apiService.getEvents(page, size, apiKey = apiKey)
         val events = result._embedded.networkEvents

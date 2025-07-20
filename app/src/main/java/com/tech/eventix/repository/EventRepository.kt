@@ -5,5 +5,5 @@ import com.tech.eventix.utils.ResultState
 import kotlinx.coroutines.flow.Flow
 
 interface EventRepository {
-    suspend fun getEvents(page: Int? = null, size: Int? = null): Flow<ResultState<List<Event>>>
+     fun getEvents(page: Int? = null, size: Int? = null): Flow<ResultState<List<Event>>>
 } 
