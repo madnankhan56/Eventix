@@ -2,8 +2,9 @@ package com.tech.eventix.domain
 
 data class Event(
     val name: String,
-    val imageUrl: String,
+    val imageUrl: String?,
     val date: String,
     val time: String,
-    val venue: Venue
+    val venue: Venue?,
+    val test: Boolean
 ) 
