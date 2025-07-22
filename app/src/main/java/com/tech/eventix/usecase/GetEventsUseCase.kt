@@ -15,7 +15,7 @@ class GetEventsUseCase @Inject constructor(
     private val repository: EventRepository
 ) {
 
-    operator fun invoke(page: Int, size: Int): Flow<ResultState<List<Event>>> {
+    operator fun invoke(page: Int = 0, size: Int = PAGE_SIZE): Flow<ResultState<List<Event>>> {
         return repository.getEvents(page, size).map { result ->
             when (result) {
                 is ResultState.Success -> {
@@ -93,5 +93,9 @@ class GetEventsUseCase @Inject constructor(
         } catch (e: Exception) {
             time // Return original if parsing fails
         }
+    }
+
+    companion object {
+        private const val PAGE_SIZE = 20
     }
 } 
