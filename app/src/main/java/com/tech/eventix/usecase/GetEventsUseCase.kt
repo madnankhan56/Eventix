@@ -14,30 +14,17 @@ import javax.inject.Inject
 class GetEventsUseCase @Inject constructor(
     private val repository: EventRepository
 ) {
-     operator fun invoke(page: Int? = null, size: Int? = null): Flow<ResultState<List<Event>>> {
-        return repository.getEvents(0, 50).map { result ->
+
+    operator fun invoke(page: Int, size: Int): Flow<ResultState<List<Event>>> {
+        return repository.getEvents(page, size).map { result ->
             when (result) {
                 is ResultState.Success -> {
-                    val filteredEvents = result.data.filter { event ->
-                        event.name.isNotEmpty() &&
-                        !event.imageUrl.isNullOrEmpty() &&
-                        event.venue != null &&
-                        event.venue.name.isNotEmpty() &&
-                        event.venue.city.isNotEmpty() &&
-                        event.venue.state.isNotEmpty() &&
-                        event.venue.address.isNotEmpty() &&
-                        !event.test
-                    }
-                    val sortedEvents = filteredEvents.sortedWith(compareBy(
-                        { LocalDate.parse(it.date) },
-                        { LocalTime.parse(it.time) }
-                    )).map { event ->
-                        event.copy(
-                            date = formatDate(event.date),
-                            time = formatTime(event.time)
-                        )
-                    }
-                    ResultState.Success(sortedEvents)
+                    val processedEvents = result.data
+                        .let(::filterValidEvents)
+                        .let(::sortEventsByDateTime)
+                        .let(::formatEventDatesAndTimes)
+                    
+                    ResultState.Success(processedEvents)
                 }
                 is ResultState.Error -> result
                 is ResultState.Loading -> result
@@ -45,21 +32,66 @@ class GetEventsUseCase @Inject constructor(
         }
     }
 
+
+    private fun filterValidEvents(events: List<Event>): List<Event> {
+        return events.filter { event ->
+            isEventValid(event)
+        }
+    }
+
+
+    private fun isEventValid(event: Event): Boolean {
+        return event.name.isNotEmpty() &&
+                !event.imageUrl.isNullOrEmpty() &&
+                hasValidVenue(event) &&
+                !event.test
+    }
+
+
+    private fun hasValidVenue(event: Event): Boolean {
+        val venue = event.venue ?: return false
+        return venue.name.isNotEmpty() &&
+                venue.city.isNotEmpty() &&
+                venue.state.isNotEmpty() &&
+                venue.address.isNotEmpty()
+    }
+
+
+    private fun sortEventsByDateTime(events: List<Event>): List<Event> {
+        return events.sortedWith(
+            compareBy<Event> { LocalDate.parse(it.date) }
+                .thenBy { LocalTime.parse(it.time) }
+        )
+    }
+
+
+    private fun formatEventDatesAndTimes(events: List<Event>): List<Event> {
+        return events.map { event ->
+            event.copy(
+                date = formatDate(event.date),
+                time = formatTime(event.time)
+            )
+        }
+    }
+
+
     private fun formatDate(date: String): String {
         return try {
             LocalDate.parse(date)
                 .format(DateTimeFormatter.ofPattern("EEE, d MMMM", Locale.ENGLISH))
         } catch (e: Exception) {
-            date
+            date // Return original if parsing fails
         }
     }
+
 
     private fun formatTime(time: String): String {
         return try {
             LocalTime.parse(time)
-                .format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)).lowercase()
+                .format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
+                .lowercase()
         } catch (e: Exception) {
-            time
+            time // Return original if parsing fails
         }
     }
 } 
