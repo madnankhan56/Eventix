@@ -1,10 +1,8 @@
 package com.tech.eventix.utils
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 
 
 sealed interface ResultState<out T> {
@@ -14,7 +12,6 @@ sealed interface ResultState<out T> {
             return exception?.message ?: "Unknown Error"
         }
     }
-    object Loading : ResultState<Nothing>
 }
 
 fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
@@ -22,20 +19,7 @@ fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
         .map<T, ResultState<T>> {
             ResultState.Success(it)
         }
-        .onStart { emit(ResultState.Loading) }
         .catch {
-            Log.e("Eventix", "Error in asResultState flow", it)
-            emit(ResultState.Error(it))
-        }
-}
-
-fun <T> Flow<T>.asResultWithoutLoading(): Flow<ResultState<T>> {
-    return this
-        .map<T, ResultState<T>> {
-            ResultState.Success(it)
-        }
-        .catch {
-            Log.e("Eventix", "Error in asResultWithoutLoading flow", it)
             emit(ResultState.Error(it))
         }
 }

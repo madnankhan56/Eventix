@@ -27,7 +27,6 @@ class EventViewModel @Inject constructor(
             when (result) {
                 is ResultState.Success -> EventsScreenUiState.Success(result.data.map { it.toUiState() })
                 is ResultState.Error -> EventsScreenUiState.Error(result.getErrorMessage())
-                is ResultState.Loading -> EventsScreenUiState.Loading
             }
         }
     }
