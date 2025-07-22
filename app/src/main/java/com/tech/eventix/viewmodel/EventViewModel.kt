@@ -16,13 +16,13 @@ class EventViewModel @Inject constructor(
     private val getEventsUseCase: GetEventsUseCase
 ) : ViewModel() {
 
-    val eventsScreenUiState: StateFlow<EventsScreenUiState> = eventUiStateStream().stateIn(
+    val eventsScreenUiState: StateFlow<EventsScreenUiState> = createEventUiStateStream().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = EventsScreenUiState.Loading
     )
 
-    private fun eventUiStateStream(): Flow<EventsScreenUiState> {
+    private fun createEventUiStateStream(): Flow<EventsScreenUiState> {
         return getEventsUseCase().map { result ->
             when (result) {
                 is ResultState.Success -> EventsScreenUiState.Success(result.data.map { it.toUiState() })
