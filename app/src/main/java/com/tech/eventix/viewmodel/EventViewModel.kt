@@ -8,13 +8,23 @@ import com.tech.eventix.uistate.EventsScreenUiState
 import com.tech.eventix.usecase.GetEventsUseCase
 import com.tech.eventix.utils.ResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class EventViewModel @Inject constructor(
     private val getEventsUseCase: GetEventsUseCase
 ) : ViewModel() {
+
+    private val loadNextPageSignal = MutableSharedFlow<Int>()
+
+    // Used to run flows on init and also on command
+    private val loadEventSignal: Flow<Int> = flow {
+        emit(0)
+        emitAll(loadNextPageSignal)
+    }
 
     val eventsScreenUiState: StateFlow<EventsScreenUiState> = createEventUiStateStream().stateIn(
         scope = viewModelScope,
@@ -23,11 +33,64 @@ class EventViewModel @Inject constructor(
     )
 
     private fun createEventUiStateStream(): Flow<EventsScreenUiState> {
-        return getEventsUseCase().map { result ->
-            when (result) {
-                is ResultState.Success -> EventsScreenUiState.Success(result.data.map { it.toUiState() })
-                is ResultState.Error -> EventsScreenUiState.Error(result.getErrorMessage())
+        return loadEventSignal.transform { page ->
+            // Emit loading state first
+            if (page == 0) {
+                emit(EventsScreenUiState.Loading)
+            } else {
+                val currentState = eventsScreenUiState.value
+                if (currentState is EventsScreenUiState.Success) {
+                    emit(currentState.copy(isLoadingMore = true, paginationError = null))
+                }
             }
+            
+            // Then emit the API result
+            emitAll(getEventsUseCase(page = page).map { result ->
+                when (result) {
+                    is ResultState.Success -> {
+                        val newEvents = result.data.map { it.toUiState() }
+                        val previousEvents = when (val currentState = eventsScreenUiState.value) {
+                            is EventsScreenUiState.Success -> currentState.events
+                            else -> emptyList()
+                        }
+                        val accumulatedEvents = if (page == 0) newEvents else previousEvents + newEvents
+                        
+                        EventsScreenUiState.Success(
+                            events = accumulatedEvents,
+                            page = page,
+                            onLoadMoreEvent = { pageNo ->
+                                viewModelScope.launch {
+                                    loadNextPageSignal.emit(pageNo + 1)
+                                }
+                            },
+                            isLoadingMore = false,
+                            paginationError = null
+                        )
+                    }
+                    is ResultState.Error -> {
+                        if (page == 0) {
+                            EventsScreenUiState.Error(result.getErrorMessage())
+                        } else {
+                            // Keep existing events but show pagination error
+                            val previousEvents = when (val currentState = eventsScreenUiState.value) {
+                                is EventsScreenUiState.Success -> currentState.events
+                                else -> emptyList()
+                            }
+                            EventsScreenUiState.Success(
+                                events = previousEvents,
+                                page = page - 1,
+                                onLoadMoreEvent = { pageNo ->
+                                    viewModelScope.launch {
+                                        loadNextPageSignal.emit(pageNo + 1)
+                                    }
+                                },
+                                isLoadingMore = false,
+                                paginationError = result.getErrorMessage()
+                            )
+                        }
+                    }
+                }
+            })
         }
     }
 }
