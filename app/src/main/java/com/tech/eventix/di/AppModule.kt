@@ -59,8 +59,7 @@ object AppModule {
     @Singleton
     fun provideEventRepository(
         remoteDataSource: RemoteDataSource,
-        apiKeyProvider: ApiKeyProvider,
-        @ApplicationContext context: Context
+        apiKeyProvider: ApiKeyProvider
     ): EventRepository =
-        EventRepositoryImpl(remoteDataSource, apiKeyProvider, context)
+        EventRepositoryImpl(remoteDataSource, apiKeyProvider)
 } 

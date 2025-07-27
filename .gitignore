@@ -82,4 +82,3 @@ fastlane/test_output
 # Kotlin/Java build cache
 .kotlinc/
 .kts/
-keys.properties

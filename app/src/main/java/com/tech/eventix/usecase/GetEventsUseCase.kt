@@ -21,7 +21,6 @@ class GetEventsUseCase @Inject constructor(
                 is ResultState.Success -> {
                     val processedEvents = result.data
                         .let(::filterValidEvents)
-                        .let(::sortEventsByDateTime)
                         .let(::formatEventDatesAndTimes)
                     
                     ResultState.Success(processedEvents)
@@ -57,15 +56,6 @@ class GetEventsUseCase @Inject constructor(
                 venue.address.isNotEmpty()
     }
 
-
-    private fun sortEventsByDateTime(events: List<Event>): List<Event> {
-        return events.sortedWith(
-            compareBy<Event> { LocalDate.parse(it.date) }
-                .thenBy { LocalTime.parse(it.time) }
-        )
-    }
-
-
     private fun formatEventDatesAndTimes(events: List<Event>): List<Event> {
         return events.map { event ->
             event.copy(
@@ -97,6 +87,6 @@ class GetEventsUseCase @Inject constructor(
     }
 
     companion object {
-        private const val PAGE_SIZE = 5
+        private const val PAGE_SIZE = 20
     }
 } 
