@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +28,9 @@ import com.tech.eventix.uistate.EventsScreenUiState
 import com.tech.eventix.viewmodel.EventViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun EventsScreen(
@@ -99,13 +101,16 @@ fun EventsScreenContent(
                 events = uiState.events,
                 isLoadingMore = uiState.isLoadingMore,
                 paginationError = uiState.paginationError,
-                onLoadMore = { uiState.onLoadMoreEvent(uiState.page) },
+                onLoadMore = {
+                    uiState.onLoadNextPage()
+                             },
                 modifier = modifier
             )
         }
     }
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 fun EventsList(
     events: List<EventUiState>,
@@ -115,23 +120,21 @@ fun EventsList(
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
-    var lastTriggerTime = remember { 0L }
-    
-    // Auto-trigger pagination when user scrolls near the end
+
     LaunchedEffect(listState) {
-                    snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect { visibleItems ->
-                val lastVisibleItem = visibleItems.lastOrNull()
-                
-                val hasVisibleItems = lastVisibleItem != null
-                val isNearEnd = lastVisibleItem?.let { it.index >= events.size - 3 } ?: false
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItemsCount = layoutInfo.totalItemsCount
+            Pair(lastVisibleItemIndex, totalItemsCount)
+        }.distinctUntilChanged()
+            .debounce(1000)
+            .collect { (lastVisibleItemIndex, totalItemsCount) ->
+
+                val isNearEnd = lastVisibleItemIndex >= totalItemsCount - 3
                 val isNotLoading = !isLoadingMore
                 val hasNoError = paginationError == null
-                val currentTime = System.currentTimeMillis()
-                val hasDebouncePassed = currentTime - lastTriggerTime > 1000 // 1 second debounce
-                
-                if (hasVisibleItems && isNearEnd && isNotLoading && hasNoError && hasDebouncePassed) {
-                    lastTriggerTime = currentTime
+                if (isNearEnd && isNotLoading && hasNoError) {
                     onLoadMore()
                 }
             }
@@ -298,7 +301,7 @@ fun PreviewEventsScreenContent_Success() {
                 )
             ),
             page = 0,
-            onLoadMoreEvent = {},
+            onLoadNextPage = {},
             isLoadingMore = false,
             paginationError = null
         )

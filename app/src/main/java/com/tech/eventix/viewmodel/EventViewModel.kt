@@ -8,7 +8,6 @@ import com.tech.eventix.uistate.EventsScreenUiState
 import com.tech.eventix.usecase.GetEventsUseCase
 import com.tech.eventix.utils.ResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,14 +34,12 @@ class EventViewModel @Inject constructor(
     private fun createEventUiStateStream(): Flow<EventsScreenUiState> {
         return loadEventSignal.transform { page ->
             // Emit loading state first
-            if (page == 0) {
-                emit(EventsScreenUiState.Loading)
-            } else {
-                val currentState = eventsScreenUiState.value
-                if (currentState is EventsScreenUiState.Success) {
-                    emit(currentState.copy(isLoadingMore = true, paginationError = null))
-                }
-            }
+
+//            val currentState = eventsScreenUiState.value
+//            if (currentState is EventsScreenUiState.Success) {
+//                emit(currentState.copy(isLoadingMore = true, paginationError = null))
+//            }
+
             
             // Then emit the API result
             emitAll(getEventsUseCase(page = page).map { result ->
@@ -58,9 +55,12 @@ class EventViewModel @Inject constructor(
                         EventsScreenUiState.Success(
                             events = accumulatedEvents,
                             page = page,
-                            onLoadMoreEvent = { pageNo ->
-                                viewModelScope.launch {
-                                    loadNextPageSignal.emit(pageNo + 1)
+                            onLoadNextPage = {
+                                val currentState = eventsScreenUiState.value
+                                if (currentState is EventsScreenUiState.Success) {
+                                    viewModelScope.launch {
+                                        loadNextPageSignal.emit(currentState.page + 1)
+                                    }
                                 }
                             },
                             isLoadingMore = false,
@@ -79,9 +79,12 @@ class EventViewModel @Inject constructor(
                             EventsScreenUiState.Success(
                                 events = previousEvents,
                                 page = page - 1,
-                                onLoadMoreEvent = { pageNo ->
-                                    viewModelScope.launch {
-                                        loadNextPageSignal.emit(pageNo + 1)
+                                onLoadNextPage = {
+                                    val currentState = eventsScreenUiState.value
+                                    if (currentState is EventsScreenUiState.Success) {
+                                        viewModelScope.launch {
+                                            loadNextPageSignal.emit(currentState.page + 1)
+                                        }
                                     }
                                 },
                                 isLoadingMore = false,

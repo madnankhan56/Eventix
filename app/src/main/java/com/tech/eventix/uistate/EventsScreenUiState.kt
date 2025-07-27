@@ -4,7 +4,7 @@ sealed class EventsScreenUiState {
     data class Success(
         val events: List<EventUiState>,
         val page: Int,
-        val onLoadMoreEvent: (Int) -> Unit,
+        val onLoadNextPage: () -> Unit,
         val isLoadingMore: Boolean = false,
         val paginationError: String? = null
     ) : EventsScreenUiState()
