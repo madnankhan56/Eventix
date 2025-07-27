@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.delay
 import coil.compose.rememberAsyncImagePainter
 import com.tech.eventix.uistate.EventUiState
 import com.tech.eventix.uistate.EventsScreenUiState
@@ -116,19 +115,23 @@ fun EventsList(
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
+    var lastTriggerTime = remember { 0L }
     
-        // Auto-trigger pagination when user scrolls near the end
+    // Auto-trigger pagination when user scrolls near the end
     LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+                    snapshotFlow { listState.layoutInfo.visibleItemsInfo }
             .collect { visibleItems ->
                 val lastVisibleItem = visibleItems.lastOrNull()
-                if (lastVisibleItem != null && 
-                    lastVisibleItem.index >= events.size - 3 && 
-                    !isLoadingMore && 
-                    paginationError == null) {
-                    // Add a small delay to prevent rapid successive calls
-                    kotlinx.coroutines.delay(100)
-                    println("📱 UI triggering pagination for current page")
+                
+                val hasVisibleItems = lastVisibleItem != null
+                val isNearEnd = lastVisibleItem?.let { it.index >= events.size - 3 } ?: false
+                val isNotLoading = !isLoadingMore
+                val hasNoError = paginationError == null
+                val currentTime = System.currentTimeMillis()
+                val hasDebouncePassed = currentTime - lastTriggerTime > 1000 // 1 second debounce
+                
+                if (hasVisibleItems && isNearEnd && isNotLoading && hasNoError && hasDebouncePassed) {
+                    lastTriggerTime = currentTime
                     onLoadMore()
                 }
             }

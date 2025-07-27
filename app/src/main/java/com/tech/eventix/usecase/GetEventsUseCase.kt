@@ -26,7 +26,9 @@ class GetEventsUseCase @Inject constructor(
                     
                     ResultState.Success(processedEvents)
                 }
-                is ResultState.Error -> result
+                is ResultState.Error -> {
+                    result
+                }
             }
         }
     }
