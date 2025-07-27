@@ -35,10 +35,10 @@ class EventViewModel @Inject constructor(
         return loadEventSignal.transform { page ->
             // Emit loading state first
 
-//            val currentState = eventsScreenUiState.value
-//            if (currentState is EventsScreenUiState.Success) {
-//                emit(currentState.copy(isLoadingMore = true, paginationError = null))
-//            }
+            val currentState = eventsScreenUiState.value
+            if (currentState is EventsScreenUiState.Success) {
+                emit(currentState.copy(isLoadingMore = true, paginationError = null))
+            }
 
             
             // Then emit the API result

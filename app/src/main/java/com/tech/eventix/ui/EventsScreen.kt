@@ -131,9 +131,15 @@ fun EventsList(
             .debounce(1000)
             .collect { (lastVisibleItemIndex, totalItemsCount) ->
 
-                val isNearEnd = lastVisibleItemIndex >= totalItemsCount - 3
+                val thresholdPercent = 0.7f // Trigger when 70% of the list is visible
+                val isNearEnd = if (totalItemsCount > 0) {
+                    lastVisibleItemIndex >= (totalItemsCount * thresholdPercent).toInt()
+                } else {
+                    false
+                }
                 val isNotLoading = !isLoadingMore
                 val hasNoError = paginationError == null
+
                 if (isNearEnd && isNotLoading && hasNoError) {
                     onLoadMore()
                 }
