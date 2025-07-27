@@ -31,6 +31,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun EventsScreen(
@@ -49,14 +55,65 @@ fun EventsScreenContent(
     when (uiState) {
         is EventsScreenUiState.Loading -> LoadingState(modifier)
         is EventsScreenUiState.Error -> ErrorState(uiState.message, modifier)
-        is EventsScreenUiState.Success -> EventsList(
-            events = uiState.events,
-            isLoadingMore = uiState.isLoadingMore,
-            paginationError = uiState.paginationError,
-            onLoadMore = { uiState.onLoadNextPage() },
-            modifier = modifier
-        )
+        is EventsScreenUiState.Success -> {
+            var searchQuery by remember { mutableStateOf("") }
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
+                // Event list (scrolls under the search bar)
+                EventsList(
+                    events = uiState.events,
+                    isLoadingMore = uiState.isLoadingMore,
+                    paginationError = uiState.paginationError,
+                    onLoadMore = { uiState.onLoadNextPage() },
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+                // Sticky search bar
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    onSearch = { /* TODO: Trigger search in ViewModel */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 12.dp, top = 12.dp)
+                        .align(Alignment.TopCenter)
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier,
+    onSearch: () -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier,
+        placeholder = { Text("Search events...") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search"
+            )
+        },
+        singleLine = true,
+        maxLines = 1,
+        shape = RoundedCornerShape(32.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = Color.White.copy(alpha = 0.9f),
+            focusedContainerColor = Color.White.copy(alpha = 0.9f),
+            disabledContainerColor = Color.White.copy(alpha = 0.9f),
+            errorContainerColor = Color.White.copy(alpha = 0.9f)
+        )
+    )
 }
 
 @Composable
@@ -150,22 +207,20 @@ fun EventsList(
     
     LazyColumn(
         state = listState,
+        contentPadding = PaddingValues(top = 72.dp),
         modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
             EventCard(event)
         }
-        
         if (isLoadingMore) {
             item {
                 LoadingMoreUi()
             }
         }
-        
         if (paginationError != null) {
             item {
                 PaginationErrorUi(paginationError, onLoadMore)
