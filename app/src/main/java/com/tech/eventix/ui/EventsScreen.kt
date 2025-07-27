@@ -152,6 +152,7 @@ fun EventsList(
         state = listState,
         modifier = modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
