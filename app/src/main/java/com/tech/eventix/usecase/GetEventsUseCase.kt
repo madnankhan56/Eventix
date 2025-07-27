@@ -81,7 +81,7 @@ class GetEventsUseCase @Inject constructor(
             LocalDate.parse(date)
                 .format(DateTimeFormatter.ofPattern("EEE, d MMMM", Locale.ENGLISH))
         } catch (e: Exception) {
-            date // Return original if parsing fails
+            date
         }
     }
 
@@ -92,7 +92,7 @@ class GetEventsUseCase @Inject constructor(
                 .format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
                 .lowercase()
         } catch (e: Exception) {
-            time // Return original if parsing fails
+            time
         }
     }
 

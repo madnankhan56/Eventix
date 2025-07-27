@@ -19,7 +19,6 @@ class EventViewModel @Inject constructor(
 
     private val loadNextPageSignal = MutableSharedFlow<Int>()
 
-    // Used to run flows on init and also on command
     private val loadEventSignal: Flow<Int> = flow {
         emit(0)
         emitAll(loadNextPageSignal)
@@ -31,69 +30,56 @@ class EventViewModel @Inject constructor(
         initialValue = EventsScreenUiState.Loading
     )
 
-    private fun createEventUiStateStream(): Flow<EventsScreenUiState> {
-        return loadEventSignal.transform { page ->
-            // Emit loading state first
-
+    private fun createEventUiStateStream(): Flow<EventsScreenUiState> =
+        loadEventSignal.transform { page ->
             val currentState = eventsScreenUiState.value
             if (currentState is EventsScreenUiState.Success) {
                 emit(currentState.copy(isLoadingMore = true, paginationError = null))
             }
 
-            
-            // Then emit the API result
             emitAll(getEventsUseCase(page = page).map { result ->
                 when (result) {
-                    is ResultState.Success -> {
-                        val newEvents = result.data.map { it.toUiState() }
-                        val previousEvents = when (val currentState = eventsScreenUiState.value) {
-                            is EventsScreenUiState.Success -> currentState.events
-                            else -> emptyList()
-                        }
-                        val accumulatedEvents = if (page == 0) newEvents else previousEvents + newEvents
-                        
-                        EventsScreenUiState.Success(
-                            events = accumulatedEvents,
-                            page = page,
-                            onLoadNextPage = {
-                                val currentState = eventsScreenUiState.value
-                                if (currentState is EventsScreenUiState.Success) {
-                                    viewModelScope.launch {
-                                        loadNextPageSignal.emit(currentState.page + 1)
-                                    }
-                                }
-                            },
-                            isLoadingMore = false,
-                            paginationError = null
-                        )
-                    }
-                    is ResultState.Error -> {
-                        if (page == 0) {
-                            EventsScreenUiState.Error(result.getErrorMessage())
-                        } else {
-                            // Keep existing events but show pagination error
-                            val previousEvents = when (val currentState = eventsScreenUiState.value) {
-                                is EventsScreenUiState.Success -> currentState.events
-                                else -> emptyList()
-                            }
-                            EventsScreenUiState.Success(
-                                events = previousEvents,
-                                page = page - 1,
-                                onLoadNextPage = {
-                                    val currentState = eventsScreenUiState.value
-                                    if (currentState is EventsScreenUiState.Success) {
-                                        viewModelScope.launch {
-                                            loadNextPageSignal.emit(currentState.page + 1)
-                                        }
-                                    }
-                                },
-                                isLoadingMore = false,
-                                paginationError = result.getErrorMessage()
-                            )
-                        }
-                    }
+                    is ResultState.Success -> buildSuccessState(page, result.data)
+                    is ResultState.Error -> buildErrorOrPaginatedErrorState(page, result.getErrorMessage())
                 }
             })
+        }
+
+    private fun buildSuccessState(page: Int, events: List<Event>): EventsScreenUiState.Success {
+        val newEvents = events.map { it.toUiState() }
+        val previousEvents = (eventsScreenUiState.value as? EventsScreenUiState.Success)?.events ?: emptyList()
+        val accumulatedEvents = if (page == 0) newEvents else previousEvents + newEvents
+
+        return EventsScreenUiState.Success(
+            events = accumulatedEvents,
+            page = page,
+            onLoadNextPage = { loadNextPage() },
+            isLoadingMore = false,
+            paginationError = null
+        )
+    }
+
+    private fun buildErrorOrPaginatedErrorState(page: Int, errorMessage: String): EventsScreenUiState {
+        return if (page == 0) {
+            EventsScreenUiState.Error(errorMessage)
+        } else {
+            val previousEvents = (eventsScreenUiState.value as? EventsScreenUiState.Success)?.events ?: emptyList()
+            EventsScreenUiState.Success(
+                events = previousEvents,
+                page = page - 1,
+                onLoadNextPage = { loadNextPage() },
+                isLoadingMore = false,
+                paginationError = errorMessage
+            )
+        }
+    }
+
+    private fun loadNextPage() {
+        val currentState = eventsScreenUiState.value
+        if (currentState is EventsScreenUiState.Success) {
+            viewModelScope.launch {
+                loadNextPageSignal.emit(currentState.page + 1)
+            }
         }
     }
 }

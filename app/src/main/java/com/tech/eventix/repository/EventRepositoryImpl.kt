@@ -20,7 +20,7 @@ class EventRepositoryImpl @Inject constructor(
 ) : EventRepository {
     
     companion object {
-        private const val USE_LOCAL_JSON = false // Set to true to use local JSON, false for real API
+        private const val USE_LOCAL_JSON = false
     }
     
     override fun getEvents(page: Int, size: Int): Flow<ResultState<List<Event>>> = flow {
@@ -32,11 +32,9 @@ class EventRepositoryImpl @Inject constructor(
     }.asResultState()
     
     private suspend fun FlowCollector<List<Event>>.getEventsFromLocalJson() {
-        // Simulate network delay
         delay(500)
         
         try {
-            // Read from local JSON file
             val jsonString = context.resources.openRawResource(
                 context.resources.getIdentifier("response", "raw", context.packageName)
             ).bufferedReader().use { it.readText() }
@@ -45,7 +43,6 @@ class EventRepositoryImpl @Inject constructor(
             val root = gson.fromJson(jsonString, Root::class.java)
             val events = root._embedded.events
             
-            // Return the same events for every page (no pagination)
             val domainEvents = events.map { it.toDomain() }
             emit(domainEvents)
         } catch (e: Exception) {
