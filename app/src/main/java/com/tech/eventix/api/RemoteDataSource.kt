@@ -10,6 +10,8 @@ interface RemoteDataSource {
         @Query("page") page: Int? = 1,
         @Query("size") size: Int? = 50,
         @Query("countryCode") countryCode: String = "US",
-        @Query("apikey") apiKey: String
+        @Query("apikey") apiKey: String,
+        @Query("sort") sortBy: String = "date,asc",
+        @Query("startDateTime") startDateTime: String? = null
     ): Root
 } 
