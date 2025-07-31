@@ -37,6 +37,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun EventsScreen(
@@ -57,10 +66,28 @@ fun EventsScreenContent(
         is EventsScreenUiState.Error -> ErrorState(uiState.message, modifier)
         is EventsScreenUiState.Success -> {
             var searchQuery by remember { mutableStateOf("") }
+            var shouldClearFocus by remember { mutableStateOf(false) }
+            val focusRequester = remember { FocusRequester() }
+            val focusManager = LocalFocusManager.current
+            
+            // Clear focus when shouldClearFocus is true
+            LaunchedEffect(shouldClearFocus) {
+                if (shouldClearFocus) {
+                    focusManager.clearFocus()
+                    shouldClearFocus = false
+                }
+            }
+            
             Box(
                 modifier = modifier
                     .fillMaxSize()
                     .statusBarsPadding()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            // Clear focus when tapping outside search bar
+                            focusManager.clearFocus()
+                        }
+                    }
             ) {
                 // Event list (scrolls under the search bar)
                 EventsList(
@@ -75,7 +102,23 @@ fun EventsScreenContent(
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
-                    onSearch = { /* TODO: Trigger search in ViewModel */ },
+                    onSearchWithFocusClear = { query -> 
+                        uiState.onSearch(query)
+                        shouldClearFocus = true
+                    },
+                    onFieldTapped = {
+                        // Clear text when tapping field, but don't reset search results
+                        searchQuery = ""
+                    },
+                    onClear = {
+                        searchQuery = ""
+                        uiState.onSearch("")
+                        shouldClearFocus = true
+                    },
+                    onFocusRequest = {
+                        focusRequester.requestFocus()
+                    },
+                    focusRequester = focusRequester,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 12.dp, end = 12.dp, top = 12.dp)
@@ -90,19 +133,49 @@ fun EventsScreenContent(
 private fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier,
-    onSearch: () -> Unit
+    onSearchWithFocusClear: (String) -> Unit,
+    onFieldTapped: () -> Unit,
+    onClear: () -> Unit,
+    onFocusRequest: () -> Unit,
+    focusRequester: FocusRequester,
+    modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier,
+        modifier = modifier
+            .focusRequester(focusRequester)
+            .clickable {
+                if (query.isNotEmpty()) {
+                    // If there's text, clear it but keep search results
+                    onFieldTapped()
+                }
+                onFocusRequest()
+            },
         placeholder = { Text("Search events...") },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = "Search"
+                contentDescription = "Search",
+                modifier = Modifier.clickable { 
+                    if (query.isNotEmpty()) {
+                        onSearchWithFocusClear(query)
+                    } else {
+                        onFocusRequest()
+                    }
+                }
             )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    contentDescription = "Clear search",
+                    modifier = Modifier.clickable { 
+                        onClear() // This resets search results
+                    }
+                )
+            }
         },
         singleLine = true,
         maxLines = 1,
@@ -112,6 +185,12 @@ private fun SearchBar(
             focusedContainerColor = Color.White.copy(alpha = 0.9f),
             disabledContainerColor = Color.White.copy(alpha = 0.9f),
             errorContainerColor = Color.White.copy(alpha = 0.9f)
+        ),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = { onSearchWithFocusClear(query) } // Enter key triggers search and removes focus
         )
     )
 }
@@ -375,7 +454,8 @@ fun PreviewEventsScreenContent_Success() {
             page = 0,
             onLoadNextPage = {},
             isLoadingMore = false,
-            paginationError = null
+            paginationError = null,
+            onSearch = {}
         )
     )
 }

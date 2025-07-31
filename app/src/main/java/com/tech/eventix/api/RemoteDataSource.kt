@@ -12,6 +12,7 @@ interface RemoteDataSource {
         @Query("countryCode") countryCode: String = "US",
         @Query("apikey") apiKey: String,
         @Query("sort") sortBy: String = "date,asc",
-        @Query("startDateTime") startDateTime: String? = null
+        @Query("startDateTime") startDateTime: String? = null,
+        @Query("keyword") keyword: String? = null
     ): Root
 } 

@@ -6,7 +6,8 @@ sealed class EventsScreenUiState {
         val page: Int,
         val onLoadNextPage: () -> Unit,
         val isLoadingMore: Boolean = false,
-        val paginationError: String? = null
+        val paginationError: String? = null,
+        val onSearch: (keyword: String)-> Unit
     ) : EventsScreenUiState()
 
     data class Error(val message: String) : EventsScreenUiState()

@@ -15,8 +15,8 @@ class GetEventsUseCase @Inject constructor(
     private val repository: EventRepository
 ) {
 
-    operator fun invoke(page: Int, size: Int = PAGE_SIZE): Flow<ResultState<List<Event>>> {
-        return repository.getEvents(page, size).map { result ->
+    operator fun invoke(page: Int, size: Int = PAGE_SIZE, keyword: String? = null): Flow<ResultState<List<Event>>> {
+        return repository.getEvents(page, size, keyword).map { result ->
             when (result) {
                 is ResultState.Success -> {
                     val processedEvents = result.data

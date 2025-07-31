@@ -18,11 +18,19 @@ class EventViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val loadNextPageSignal = MutableSharedFlow<Int>()
+    private val searchSignal = MutableSharedFlow<String>()
+    private var currentKeyword: String? = null
 
-    private val loadEventSignal: Flow<Int> = flow {
-        emit(0)
-        emitAll(loadNextPageSignal)
-    }
+    private val loadEventSignal: Flow<Pair<Int, String?>> = merge(
+        flow {
+            emit(Pair(0, null)) // Initial load
+            emitAll(loadNextPageSignal.map { page -> Pair(page, currentKeyword) })
+        },
+        searchSignal.map { keyword -> 
+            currentKeyword = keyword
+            Pair(0, keyword) // Reset to page 0 when searching
+        }
+    )
 
     val eventsScreenUiState: StateFlow<EventsScreenUiState> = createEventUiStateStream().stateIn(
         scope = viewModelScope,
@@ -31,13 +39,13 @@ class EventViewModel @Inject constructor(
     )
 
     private fun createEventUiStateStream(): Flow<EventsScreenUiState> =
-        loadEventSignal.transform { page ->
+        loadEventSignal.transform { (page, keyword) ->
             val currentState = eventsScreenUiState.value
-            if (currentState is EventsScreenUiState.Success) {
+            if (currentState is EventsScreenUiState.Success && page > 0) {
                 emit(currentState.copy(isLoadingMore = true, paginationError = null))
             }
 
-            emitAll(getEventsUseCase(page = page).map { result ->
+            emitAll(getEventsUseCase(page = page, keyword = keyword).map { result ->
                 when (result) {
                     is ResultState.Success -> buildSuccessState(page, result.data)
                     is ResultState.Error -> buildErrorOrPaginatedErrorState(page, result.getErrorMessage())
@@ -55,7 +63,8 @@ class EventViewModel @Inject constructor(
             page = page,
             onLoadNextPage = { loadNextPage() },
             isLoadingMore = false,
-            paginationError = null
+            paginationError = null,
+            onSearch = { keyword -> search(keyword) }
         )
     }
 
@@ -69,7 +78,8 @@ class EventViewModel @Inject constructor(
                 page = page - 1,
                 onLoadNextPage = { loadNextPage() },
                 isLoadingMore = false,
-                paginationError = errorMessage
+                paginationError = errorMessage,
+                onSearch = { keyword -> search(keyword) }
             )
         }
     }
@@ -80,6 +90,13 @@ class EventViewModel @Inject constructor(
             viewModelScope.launch {
                 loadNextPageSignal.emit(currentState.page + 1)
             }
+        }
+    }
+
+    private fun search(keyword: String) {
+        viewModelScope.launch {
+            val searchKeyword = keyword.trim().takeIf { it.isNotEmpty() }
+            searchSignal.emit(searchKeyword ?: "")
         }
     }
 }

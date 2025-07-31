@@ -16,16 +16,16 @@ class EventRepositoryImpl @Inject constructor(
     private val apiKeyProvider: ApiKeyProvider,
 ) : EventRepository {
 
-    override fun getEvents(page: Int, size: Int): Flow<ResultState<List<Event>>> = flow {
-        getEventsFromApi(page, size)
+    override fun getEvents(page: Int, size: Int, keyword: String?): Flow<ResultState<List<Event>>> = flow {
+        getEventsFromApi(page, size, keyword)
     }.asResultState()
 
-    private suspend fun FlowCollector<List<Event>>.getEventsFromApi(page: Int, size: Int) {
+    private suspend fun FlowCollector<List<Event>>.getEventsFromApi(page: Int, size: Int, keyword: String?) {
         try {
             val apiKey = apiKeyProvider.getApiKey()
             val startDateTime = getTomorrowStartDateTime()
             val result = apiService.getEvents(
-                page, size, apiKey = apiKey, sortBy = "date,asc", startDateTime = startDateTime
+                page, size, apiKey = apiKey, sortBy = "date,asc", startDateTime = startDateTime, keyword = keyword
             )
             val events = result.getEvents()
             val domainEvents = events.map { it.toDomain() }
