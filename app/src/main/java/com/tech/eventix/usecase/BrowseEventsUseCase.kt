@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
-class GetEventsUseCase @Inject constructor(
+class BrowseEventsUseCase @Inject constructor(
     private val repository: EventRepository
 ) {
 

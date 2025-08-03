@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tech.eventix.domain.Event
 import com.tech.eventix.uistate.EventUiState
 import com.tech.eventix.uistate.EventsScreenUiState
-import com.tech.eventix.usecase.GetEventsUseCase
+import com.tech.eventix.usecase.BrowseEventsUseCase
 import com.tech.eventix.utils.ResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EventViewModel @Inject constructor(
-    private val getEventsUseCase: GetEventsUseCase
+    private val browseEventsUseCase: BrowseEventsUseCase
 ) : ViewModel() {
 
     private val eventsQuerySignal = MutableStateFlow(EventQuery(0, null) )
@@ -32,7 +32,7 @@ class EventViewModel @Inject constructor(
                 emit(currentState.copy(isLoadingMore = true, paginationError = null))
             }
 
-            emitAll(getEventsUseCase(page = page, keyword = keyword).map { result ->
+            emitAll(browseEventsUseCase(page = page, keyword = keyword).map { result ->
                 when (result) {
                     is ResultState.Success -> buildSuccessState(page, result.data)
                     is ResultState.Error -> buildErrorOrPaginatedErrorState(page, result.getErrorMessage())
