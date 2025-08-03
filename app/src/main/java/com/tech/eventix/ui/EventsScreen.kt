@@ -46,7 +46,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.launch
 
 @Composable
 fun EventsScreen(
@@ -71,6 +74,9 @@ fun EventsScreenContent(
             val parentFocusRequester = remember { FocusRequester() }
             val keyboardController = LocalSoftwareKeyboardController.current
 
+            val listState = rememberLazyListState()
+            val coroutineScope = rememberCoroutineScope()
+
             Box(
                 modifier = modifier
                     .fillMaxSize()
@@ -86,32 +92,39 @@ fun EventsScreenContent(
             ) {
                 // Event list (scrolls under the search bar)
                 EventsList(
+                    listState = listState,
                     events = uiState.events,
                     isLoadingMore = uiState.isLoadingMore,
                     paginationError = uiState.paginationError,
                     onLoadMore = { uiState.onLoadNextPage() },
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 )
                 // Sticky search bar
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = {
                         searchQuery = it
+
+                        if (it.isEmpty()) {
+                            coroutineScope.launch {
+                                listState.scrollToItem(0)
+                            }
+                            uiState.onSearch("")
+                        }
                     },
                     onSearch = { query ->
-                        keyboardController?.hide()
-                        parentFocusRequester.requestFocus()
+                        coroutineScope.launch {
+                            keyboardController?.hide()
+                            parentFocusRequester.requestFocus()
+                            listState.scrollToItem(0)
+                        }
                         uiState.onSearch(query)
                     },
                     onClear = {
-                        searchQuery = ""
                         keyboardController?.hide()
                         parentFocusRequester.requestFocus()
+                        searchQuery = ""
                         uiState.onSearch("")
-                    },
-                    onFocusRequest = {
-//                        textFieldFocusRequester.requestFocus()
                     },
                     focusRequester = textFieldFocusRequester,
                     modifier = Modifier
@@ -130,7 +143,6 @@ private fun SearchBar(
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
     onClear: () -> Unit,
-    onFocusRequest: () -> Unit,
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
@@ -146,8 +158,6 @@ private fun SearchBar(
                 modifier = Modifier.clickable { 
                     if (query.isNotEmpty()) {
                         onSearch(query)
-                    } else {
-                        onFocusRequest()
                     }
                 }
             )
@@ -237,14 +247,14 @@ private fun ErrorState(message: String, modifier: Modifier = Modifier) {
 @OptIn(FlowPreview::class)
 @Composable
 fun EventsList(
+    listState: LazyListState,
     events: List<EventUiState>,
     isLoadingMore: Boolean,
     paginationError: String?,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val listState = rememberLazyListState()
-
+    // Reset scroll position when search is cleared
     LaunchedEffect(listState) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo

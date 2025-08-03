@@ -19,7 +19,6 @@ class EventViewModel @Inject constructor(
 
     private val eventsQuerySignal = MutableStateFlow(EventQuery(0, null) )
 
-
     val eventsScreenUiState: StateFlow<EventsScreenUiState> = createEventUiStateStream().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
