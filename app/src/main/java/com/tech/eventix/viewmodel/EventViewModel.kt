@@ -17,20 +17,8 @@ class EventViewModel @Inject constructor(
     private val getEventsUseCase: GetEventsUseCase
 ) : ViewModel() {
 
-    private val loadNextPageSignal = MutableSharedFlow<Int>()
-    private val searchSignal = MutableSharedFlow<String>()
-    private var currentKeyword: String? = null
+    private val eventsQuerySignal = MutableStateFlow(EventQuery(0, null) )
 
-    private val loadEventSignal: Flow<Pair<Int, String?>> = merge(
-        flow {
-            emit(Pair(0, null)) // Initial load
-            emitAll(loadNextPageSignal.map { page -> Pair(page, currentKeyword) })
-        },
-        searchSignal.map { keyword -> 
-            currentKeyword = keyword
-            Pair(0, keyword) // Reset to page 0 when searching
-        }
-    )
 
     val eventsScreenUiState: StateFlow<EventsScreenUiState> = createEventUiStateStream().stateIn(
         scope = viewModelScope,
@@ -39,7 +27,7 @@ class EventViewModel @Inject constructor(
     )
 
     private fun createEventUiStateStream(): Flow<EventsScreenUiState> =
-        loadEventSignal.transform { (page, keyword) ->
+        this.eventsQuerySignal.transform { (page, keyword) ->
             val currentState = eventsScreenUiState.value
             if (currentState is EventsScreenUiState.Success && page > 0) {
                 emit(currentState.copy(isLoadingMore = true, paginationError = null))
@@ -88,7 +76,7 @@ class EventViewModel @Inject constructor(
         val currentState = eventsScreenUiState.value
         if (currentState is EventsScreenUiState.Success) {
             viewModelScope.launch {
-                loadNextPageSignal.emit(currentState.page + 1)
+                this@EventViewModel.eventsQuerySignal.emit(EventQuery(currentState.page + 1, this@EventViewModel.eventsQuerySignal.value.keyword))
             }
         }
     }
@@ -96,7 +84,7 @@ class EventViewModel @Inject constructor(
     private fun search(keyword: String) {
         viewModelScope.launch {
             val searchKeyword = keyword.trim().takeIf { it.isNotEmpty() }
-            searchSignal.emit(searchKeyword ?: "")
+            this@EventViewModel.eventsQuerySignal.emit(EventQuery(0, searchKeyword))
         }
     }
 }
@@ -111,3 +99,8 @@ private fun Event.toUiState(): EventUiState {
             .joinToString(", ")
     )
 } 
+
+private data class EventQuery(
+    val page: Int,
+    val keyword: String?
+)
