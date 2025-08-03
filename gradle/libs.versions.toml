@@ -18,6 +18,9 @@ hilt_compiler = "2.57"
 ksp = "2.0.21-1.0.26"
 flipper = "0.187.1"
 soLoader = "0.10.5"
+turbine = "1.1.0"
+kotlinx-coroutines-test = "1.7.3"
+mockk = "1.13.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +49,11 @@ flipper = {group = "com.facebook.flipper", name = "flipper", version.ref = "flip
 flipper-noop = {group = "com.facebook.flipper", name = "flipper-noop", version.ref = "flipper" }
 flippernetworkplugin = {group = "com.facebook.flipper", name = "flipper-network-plugin", version.ref = "flipper" }
 soLoader = {group = "com.facebook.soloader", name = "soloader", version.ref = "soLoader" }
+
+# Testing libraries
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 
 [plugins]
