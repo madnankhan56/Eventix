@@ -43,7 +43,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 
@@ -66,26 +67,20 @@ fun EventsScreenContent(
         is EventsScreenUiState.Error -> ErrorState(uiState.message, modifier)
         is EventsScreenUiState.Success -> {
             var searchQuery by remember { mutableStateOf("") }
-            var shouldClearFocus by remember { mutableStateOf(false) }
-            val focusRequester = remember { FocusRequester() }
-            val focusManager = LocalFocusManager.current
-            
-            // Clear focus when shouldClearFocus is true
-            LaunchedEffect(shouldClearFocus) {
-                if (shouldClearFocus) {
-                    focusManager.clearFocus()
-                    shouldClearFocus = false
-                }
-            }
-            
+            val textFieldFocusRequester = remember { FocusRequester() }
+            val parentFocusRequester = remember { FocusRequester() }
+            val keyboardController = LocalSoftwareKeyboardController.current
+
             Box(
                 modifier = modifier
                     .fillMaxSize()
                     .statusBarsPadding()
+                    .focusRequester(parentFocusRequester)
+                    .focusable()
                     .pointerInput(Unit) {
                         detectTapGestures {
-                            // Clear focus when tapping outside search bar
-                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            parentFocusRequester.requestFocus()
                         }
                     }
             ) {
@@ -101,24 +96,24 @@ fun EventsScreenContent(
                 // Sticky search bar
                 SearchBar(
                     query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearchWithFocusClear = { query -> 
-                        uiState.onSearch(query)
-                        shouldClearFocus = true
+                    onQueryChange = {
+                        searchQuery = it
                     },
-                    onFieldTapped = {
-                        // Clear text when tapping field, but don't reset search results
-                        searchQuery = ""
+                    onSearch = { query ->
+                        keyboardController?.hide()
+                        parentFocusRequester.requestFocus()
+                        uiState.onSearch(query)
                     },
                     onClear = {
                         searchQuery = ""
+                        keyboardController?.hide()
+                        parentFocusRequester.requestFocus()
                         uiState.onSearch("")
-                        shouldClearFocus = true
                     },
                     onFocusRequest = {
-                        focusRequester.requestFocus()
+//                        textFieldFocusRequester.requestFocus()
                     },
-                    focusRequester = focusRequester,
+                    focusRequester = textFieldFocusRequester,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 12.dp, end = 12.dp, top = 12.dp)
@@ -133,8 +128,7 @@ fun EventsScreenContent(
 private fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearchWithFocusClear: (String) -> Unit,
-    onFieldTapped: () -> Unit,
+    onSearch: (String) -> Unit,
     onClear: () -> Unit,
     onFocusRequest: () -> Unit,
     focusRequester: FocusRequester,
@@ -143,15 +137,7 @@ private fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier
-            .focusRequester(focusRequester)
-            .clickable {
-                if (query.isNotEmpty()) {
-                    // If there's text, clear it but keep search results
-                    onFieldTapped()
-                }
-                onFocusRequest()
-            },
+        modifier = modifier.focusRequester(focusRequester),
         placeholder = { Text("Search events...") },
         leadingIcon = {
             Icon(
@@ -159,7 +145,7 @@ private fun SearchBar(
                 contentDescription = "Search",
                 modifier = Modifier.clickable { 
                     if (query.isNotEmpty()) {
-                        onSearchWithFocusClear(query)
+                        onSearch(query)
                     } else {
                         onFocusRequest()
                     }
@@ -190,7 +176,7 @@ private fun SearchBar(
             imeAction = ImeAction.Search
         ),
         keyboardActions = KeyboardActions(
-            onSearch = { onSearchWithFocusClear(query) } // Enter key triggers search and removes focus
+            onSearch = { onSearch(query) }
         )
     )
 }
