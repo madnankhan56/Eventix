@@ -2,6 +2,8 @@ package com.tech.eventix.repository
 
 import com.tech.eventix.api.RemoteDataSource
 import com.tech.eventix.api.model.*
+import com.tech.eventix.domain.Event
+import com.tech.eventix.domain.Venue
 import app.cash.turbine.test
 import com.tech.eventix.utils.ResultState
 import io.mockk.*
@@ -45,6 +47,11 @@ class EventRepositoryImplTest {
                 .plusDays(1)
                 .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
 
+        val expectedEvents = listOf(
+            createExpectedEvent("Event 1"),
+            createExpectedEvent("Event 2")
+        )
+
         coEvery { 
             mockApiService.getEvents(
                 page = 1,
@@ -61,10 +68,12 @@ class EventRepositoryImplTest {
             val result = awaitItem()
             assertTrue("Expected Success result", result is ResultState.Success)
             
-            val events = (result as ResultState.Success).data
-            assertEquals("Expected 2 events", 2, events.size)
-            assertEquals("Event 1", events[0].name)
-            assertEquals("Event 2", events[1].name)
+            val actualEvents = (result as ResultState.Success).data
+            assertEquals(
+                "Events should match expected mapped domain events",
+                expectedEvents,
+                actualEvents
+            )
             
             awaitComplete()
         }
@@ -93,6 +102,10 @@ class EventRepositoryImplTest {
             .plusDays(1)
             .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
 
+        val expectedEvents = listOf(
+            createExpectedEvent("Concert Event")
+        )
+
         coEvery { 
             mockApiService.getEvents(
                 page = 0,
@@ -109,9 +122,8 @@ class EventRepositoryImplTest {
             val result = awaitItem()
             assertTrue("Expected Success result", result is ResultState.Success)
             
-            val events = (result as ResultState.Success).data
-            assertEquals("Expected 1 event", 1, events.size)
-            assertEquals("Concert Event", events[0].name)
+            val actualEvents = (result as ResultState.Success).data
+            assertEquals("Should return mapped events for keyword search", expectedEvents, actualEvents)
             
             awaitComplete()
         }
@@ -133,7 +145,10 @@ class EventRepositoryImplTest {
     fun getEvents_WithApiThrowsException_ShouldEmitError() = runTest {
         // Arrange
         val expectedException = RuntimeException("Network error")
-        val expectedTomorrowDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        val expectedTomorrowDate =
+            LocalDate.now()
+            .plusDays(1)
+            .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
 
         coEvery { 
             mockApiService.getEvents(
@@ -162,7 +177,12 @@ class EventRepositoryImplTest {
     fun getEvents_WithEmptyApiResponse_ShouldEmitSuccessWithEmptyList() = runTest {
         // Arrange
         val mockRoot = createMockRoot(emptyList())
-        val expectedTomorrowDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        val expectedTomorrowDate =
+            LocalDate.now()
+                .plusDays(1)
+                .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        
+        val expectedEvents = emptyList<Event>()
 
         coEvery { 
             mockApiService.getEvents(
@@ -180,8 +200,12 @@ class EventRepositoryImplTest {
             val result = awaitItem()
             assertTrue("Expected Success result", result is ResultState.Success)
             
-            val events = (result as ResultState.Success).data
-            assertTrue("Expected empty list", events.isEmpty())
+            val actualEvents = (result as ResultState.Success).data
+            assertEquals(
+                "Should return empty list for empty API response",
+                expectedEvents,
+                actualEvents
+            )
             
             awaitComplete()
         }
@@ -195,7 +219,10 @@ class EventRepositoryImplTest {
         
         val networkEvents = listOf(createMockNetworkEvent("Test Event"))
         val mockRoot = createMockRoot(networkEvents)
-        val expectedTomorrowDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        val expectedTomorrowDate =
+            LocalDate.now()
+                .plusDays(1)
+                .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
 
         coEvery { 
             mockApiService.getEvents(
@@ -305,7 +332,23 @@ class EventRepositoryImplTest {
         )
 
         val mockRoot = createMockRoot(listOf(networkEvent))
-        val expectedTomorrowDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        val expectedTomorrowDate =
+            LocalDate.now()
+                .plusDays(1)
+                .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+
+        val expectedEvents = listOf(
+            createExpectedEvent(
+                name = "Test Concert",
+                time = "20:00:00",
+                venue = createExpectedVenue(
+                    name = "Madison Square Garden",
+                    city = "New York", 
+                    state = "NY",
+                    address = "4 Pennsylvania Plaza"
+                )
+            )
+        )
 
         coEvery { 
             mockApiService.getEvents(
@@ -323,22 +366,12 @@ class EventRepositoryImplTest {
             val result = awaitItem()
             assertTrue("Expected Success result", result is ResultState.Success)
             
-            val events = (result as ResultState.Success).data
-            assertEquals("Expected 1 event", 1, events.size)
-            
-            val event = events[0]
-            assertEquals("Test Concert", event.name)
-            assertEquals("https://example.com/image.jpg", event.imageUrl)
-            assertEquals("2024-12-25", event.date)
-            assertEquals("20:00:00", event.time)
-            assertEquals(false, event.test)
-            
-            assertNotNull("Expected venue", event.venue)
-            val venue = event.venue!!
-            assertEquals("Madison Square Garden", venue.name)
-            assertEquals("New York", venue.city)
-            assertEquals("NY", venue.state)
-            assertEquals("4 Pennsylvania Plaza", venue.address)
+            val actualEvents = (result as ResultState.Success).data
+            assertEquals(
+                "Should correctly map network event to domain event",
+                expectedEvents,
+                actualEvents
+            )
             
             awaitComplete()
         }
@@ -349,7 +382,17 @@ class EventRepositoryImplTest {
         // Arrange
         val networkEventWithoutVenue = createMockNetworkEventWithoutVenue("Event Without Venue")
         val mockRoot = createMockRoot(listOf(networkEventWithoutVenue))
-        val expectedTomorrowDate = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+        val expectedTomorrowDate =
+            LocalDate.now()
+                .plusDays(1)
+                .format(DateTimeFormatter.ISO_DATE) + "T00:00:00Z"
+
+        val expectedEvents = listOf(
+            createExpectedEvent(
+                name = "Event Without Venue",
+                venue = null
+            )
+        )
 
         coEvery { 
             mockApiService.getEvents(
@@ -367,12 +410,12 @@ class EventRepositoryImplTest {
             val result = awaitItem()
             assertTrue("Expected Success result", result is ResultState.Success)
             
-            val events = (result as ResultState.Success).data
-            assertEquals("Expected 1 event", 1, events.size)
-            
-            val event = events[0]
-            assertEquals("Event Without Venue", event.name)
-            assertNull("Expected null venue", event.venue)
+            val actualEvents = (result as ResultState.Success).data
+            assertEquals(
+                "Should map event without venue correctly",
+                expectedEvents,
+                actualEvents
+            )
             
             awaitComplete()
         }
@@ -675,9 +718,39 @@ class EventRepositoryImplTest {
         assertEquals("", domainEvent.imageUrl)
     }
 
-    // ================================================
-    // HELPER FUNCTIONS
-    // ================================================
+    
+    // Expected Domain Object Helpers
+    private fun createExpectedEvent(
+        name: String,
+        imageUrl: String = "https://example.com/image.jpg",
+        date: String = "2024-12-25", 
+        time: String = "19:00:00",
+        venue: Venue? = createExpectedVenue(),
+        test: Boolean = false
+    ): Event {
+        return Event(
+            name = name,
+            imageUrl = imageUrl,
+            date = date,
+            time = time,
+            venue = venue,
+            test = test
+        )
+    }
+    
+    private fun createExpectedVenue(
+        name: String = "Test Venue",
+        city: String = "Test City",
+        state: String = "TS", 
+        address: String = "123 Test Street"
+    ): Venue {
+        return Venue(
+            name = name,
+            city = city,
+            state = state,
+            address = address
+        )
+    }
 
     private fun createMockNetworkEvent(name: String): NetworkEvent {
         return NetworkEvent(
