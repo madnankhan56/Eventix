@@ -1,6 +1,6 @@
 package com.tech.eventix.uistate
 
-class EventUiState(
+data class EventUiState(
     val name: String,
     val image: String,
     val dateTime: String,
