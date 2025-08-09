@@ -1,6 +1,5 @@
 package com.tech.eventix.viewmodel
 
-import app.cash.turbine.test
 import com.tech.eventix.domain.Event
 import com.tech.eventix.domain.Venue
 import com.tech.eventix.uistate.EventUiState
@@ -10,7 +9,6 @@ import com.tech.eventix.utils.ResultState
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.MainCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
@@ -336,59 +334,45 @@ class EventViewModelTest {
     }
 
     @Test
-    fun `uiState should replace events when searching (page 0)`() = runTest {
+    fun `onSearch_shouldReplaceEventsAndResetPage_whenKeywordProvided`() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val initialEvents = listOf(createValidEvent("Initial Event"))
         val searchResults = listOf(createValidEvent("Search Result"))
         val keyword = "search"
 
-        val initialFlow = MutableSharedFlow<ResultState<List<Event>>>()
-
-        // STUB
-        coEvery { mockBrowseEventsUseCase(0, 20, null) } coAnswers   {
-            val keyword = args[2] as String? // null for initial load
-
-            if(keyword == null) {
-                initialFlow.emit(ResultState.Success(initialEvents))
+        // STUB - Return different results based on keyword parameter
+        coEvery { mockBrowseEventsUseCase(any(), any(), any()) } coAnswers {
+            val searchKeyword = args[2] as String?
+            if (searchKeyword == null) {
+                flowOf(ResultState.Success(initialEvents))
             } else {
-                initialFlow.emit(ResultState.Success(searchResults))
+                flowOf(ResultState.Success(searchResults))
             }
-            initialFlow
         }
 
+        var searchTriggered = false
 
-
-        var searchPerformed = false
-
-        // ACT
+        // ACT - Collect state and trigger search when initial events are loaded
         backgroundScope.launch(UnconfinedTestDispatcher()) {
             viewModel.eventsScreenUiState.collectLatest { state ->
-                when (state) {
-                    is EventsScreenUiState.Success -> {
-                        if (!searchPerformed && state.events.size == 1 && state.events[0].name == "Initial Event") {
-                            searchPerformed = true
-                            // Get initial state and trigger search
-                            state.onSearch(keyword)
-                            
-                            // Emit search results
-                        } else if (searchPerformed && state.events.size == 1 && state.events[0].name == "Search Result") {
-                            // ASSERT - Events replaced with search results
-
-                        }
+                if (state is EventsScreenUiState.Success && !searchTriggered) {
+                    val hasInitialEvent = state.events.any { it.name == "Initial Event" }
+                    if (hasInitialEvent) {
+                        searchTriggered = true
+                        state.onSearch(keyword)
                     }
-                    else -> {}
                 }
             }
         }
 
-        // Emit initial events
+        // ASSERT - Verify search results replace initial events
+        val finalState = viewModel.eventsScreenUiState.value as EventsScreenUiState.Success
+        assertEquals(searchResults.map { it.toExpectedUiState() }, finalState.events)
+        assertEquals(0, finalState.page)
 
-        val state: EventsScreenUiState.Success = viewModel.eventsScreenUiState.value as EventsScreenUiState.Success
-
-        assertEquals(searchResults.map { it.toExpectedUiState() }, state.events)
-        assertEquals(0, state.page)
-
-        advanceTimeBy(500)
+        // VERIFY - Both initial load and search were called
+        coVerify(exactly = 1) { mockBrowseEventsUseCase(0, 20, null) }
+        coVerify(exactly = 1) { mockBrowseEventsUseCase(0, 20, keyword) }
     }
 
     @Test
