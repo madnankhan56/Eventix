@@ -38,13 +38,13 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldStartWithLoadingState_whenInitialized() = runTest {
+    fun viewModel_shouldStartWithLoadingState_whenInitialized() = runTest(UnconfinedTestDispatcher()) {
         // ASSERT
         assertEquals(EventsScreenUiState.Loading, viewModel.eventsScreenUiState.value)
     }
 
     @Test
-    fun viewModel_shouldEmitSuccessState_whenFirstPageRequested() = runTest {
+    fun viewModel_shouldEmitSuccessState_whenFirstPageRequested() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val events = listOf(
             createValidEvent("Concert Event"),
@@ -74,7 +74,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldEmitErrorState_whenFirstPageFails() = runTest {
+    fun viewModel_shouldEmitErrorState_whenFirstPageFails() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val errorMessage = "Network error"
 
@@ -164,7 +164,7 @@ class EventViewModelTest {
                     if (!nextPageTriggered && state.events.any { it.name == "Event 1" } && state.page == 0) {
                         nextPageTriggered = true
                         state.onLoadNextPage()
-                    } else if (nextPageTriggered && !loadingStateVerified && state.isLoadingMore) {
+                    } else if (nextPageTriggered && !loadingStateVerified) {
                         // ASSERT - Verify loading state during pagination
                         loadingStateVerified = true
                         assertTrue(state.isLoadingMore)
@@ -384,7 +384,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldEmitValidEventData_whenEventHasAllFields() = runTest {
+    fun viewModel_shouldEmitValidEventData_whenEventHasAllFields() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val validEvent = Event(
             name = "Test Concert",
@@ -421,7 +421,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldEmitSafeImageData_whenImageUrlIsNull() = runTest {
+    fun viewModel_shouldEmitSafeImageData_whenImageUrlIsNull() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val eventWithNullImage = createValidEvent("Test Event").copy(imageUrl = null)
 
@@ -443,7 +443,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldEmitSafeLocationData_whenVenueIsNull() = runTest {
+    fun viewModel_shouldEmitSafeLocationData_whenVenueIsNull() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val eventWithNullVenue = createValidEvent("Test Event").copy(venue = null)
 
@@ -465,7 +465,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldEmitSafeDateTimeData_whenDateAndTimeAreEmpty() = runTest {
+    fun viewModel_shouldEmitSafeDateTimeData_whenDateAndTimeAreEmpty() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val eventWithEmptyDateTime = createValidEvent("Test Event").copy(date = "", time = "")
 
