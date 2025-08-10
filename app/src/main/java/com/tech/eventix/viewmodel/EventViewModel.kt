@@ -32,17 +32,18 @@ class EventViewModel @Inject constructor(
                 emit(currentState.copy(isLoadingMore = true, paginationError = null))
             }
 
+            val previousEvents = (currentState as? EventsScreenUiState.Success)?.events ?: emptyList()
+
             emitAll(browseEventsUseCase(page = page, keyword = keyword).map { result ->
                 when (result) {
-                    is ResultState.Success -> buildSuccessState(page, result.data)
-                    is ResultState.Error -> buildErrorOrPaginatedErrorState(page, result.getErrorMessage())
+                    is ResultState.Success -> buildSuccessState(page, result.data, previousEvents)
+                    is ResultState.Error -> buildErrorOrPaginatedErrorState(page, result.getErrorMessage(), previousEvents)
                 }
             })
         }
 
-    private fun buildSuccessState(page: Int, events: List<Event>): EventsScreenUiState.Success {
+    private fun buildSuccessState(page: Int, events: List<Event>, previousEvents: List<EventUiState>): EventsScreenUiState.Success {
         val newEvents = events.map { it.toUiState() }
-        val previousEvents = (eventsScreenUiState.value as? EventsScreenUiState.Success)?.events ?: emptyList()
         val accumulatedEvents = if (page == 0) newEvents else previousEvents + newEvents
 
         return EventsScreenUiState.Success(
@@ -55,11 +56,10 @@ class EventViewModel @Inject constructor(
         )
     }
 
-    private fun buildErrorOrPaginatedErrorState(page: Int, errorMessage: String): EventsScreenUiState {
+    private fun buildErrorOrPaginatedErrorState(page: Int, errorMessage: String, previousEvents: List<EventUiState>): EventsScreenUiState {
         return if (page == 0) {
             EventsScreenUiState.Error(errorMessage)
         } else {
-            val previousEvents = (eventsScreenUiState.value as? EventsScreenUiState.Success)?.events ?: emptyList()
             EventsScreenUiState.Success(
                 events = previousEvents,
                 page = page - 1,
