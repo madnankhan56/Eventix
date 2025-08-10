@@ -2,7 +2,10 @@ package com.tech.eventix.api
 
 import com.tech.eventix.api.model.Root
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.Response
+import com.tech.eventix.api.model.NetworkEvent
 
 interface RemoteDataSource {
     @GET("discovery/v2/events.json")
@@ -15,4 +18,10 @@ interface RemoteDataSource {
         @Query("startDateTime") startDateTime: String? = null,
         @Query("keyword") keyword: String? = null
     ): Root
+
+    @GET("events/{id}.json")
+    suspend fun getEventDetails(
+        @Path("id") eventId: String,
+        @Query("apikey") apiKey: String
+    ): NetworkEvent
 } 

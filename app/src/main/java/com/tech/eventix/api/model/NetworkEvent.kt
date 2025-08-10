@@ -1,5 +1,7 @@
 package com.tech.eventix.api.model
 
+import com.google.gson.annotations.SerializedName
+
 data class NetworkEvent(
     val name: String,
     val type: String,
@@ -8,18 +10,43 @@ data class NetworkEvent(
     val url: String,
     val locale: String,
     val images: List<Image>,
-    val sales: Sales,
     val dates: Dates,
     val classifications: List<Classification>,
-    val promoter: Promoter,
-    val promoters: List<Promoter>,
+    @SerializedName("_embedded") val embedded: EventEmbedded?,
+    val sales: Sales?,
+    val priceRanges: List<Price>?,
+    val products: List<Product>?,
     val info: String?,
     val pleaseNote: String?,
+    val promoter: Promoter?,
     val seatmap: Seatmap?,
     val accessibility: Accessibility?,
-    val ticketLimit: TicketLimit?,
     val ageRestrictions: AgeRestrictions?,
-    val ticketing: Ticketing?,
-    val _links: EventLinks,
-    val _embedded: EventEmbedded
+    val ticketLimit: TicketLimit?
+)
+
+data class Promoter(
+    val name: String?,
+    val description: String?
+)
+
+data class Seatmap(
+    val staticUrl: String?
+)
+
+data class Sales(
+    val public: Public,
+    val presales: List<Presale>?
+)
+
+data class Price(
+    val type: String,
+    val currency: String,
+    val min: Double,
+    val max: Double
+)
+
+data class Public(
+    val startDateTime: String?,
+    val endDateTime: String?
 )

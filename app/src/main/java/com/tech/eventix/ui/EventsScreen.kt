@@ -54,15 +54,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun EventsScreen(
     viewModel: EventViewModel = hiltViewModel(),
+    onEventClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.eventsScreenUiState.collectAsStateWithLifecycle()
-    EventsScreenContent(uiState = uiState, modifier = modifier)
+    EventsScreenContent(uiState = uiState, onEventClick = onEventClick, modifier = modifier)
 }
 
 @Composable
 fun EventsScreenContent(
     uiState: EventsScreenUiState,
+    onEventClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
@@ -97,6 +99,7 @@ fun EventsScreenContent(
                     isLoadingMore = uiState.isLoadingMore,
                     paginationError = uiState.paginationError,
                     onLoadMore = { uiState.onLoadNextPage() },
+                    onEventClick = onEventClick,
                     modifier = Modifier.fillMaxSize()
                 )
                 // Sticky search bar
@@ -252,6 +255,7 @@ fun EventsList(
     isLoadingMore: Boolean,
     paginationError: String?,
     onLoadMore: () -> Unit,
+    onEventClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Reset scroll position when search is cleared
@@ -289,7 +293,7 @@ fun EventsList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
-            EventCard(event)
+            EventCard(event, onEventClick = onEventClick)
         }
         if (isLoadingMore) {
             item {
@@ -379,11 +383,16 @@ private fun PaginationErrorUi(error: String, onRetry: () -> Unit) {
 }
 
 @Composable
-fun EventCard(event: EventUiState, modifier: Modifier = Modifier) {
+fun EventCard(
+    event: EventUiState,
+    onEventClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onEventClick() },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -452,7 +461,8 @@ fun PreviewEventsScreenContent_Success() {
             isLoadingMore = false,
             paginationError = null,
             onSearch = {}
-        )
+        ),
+        onEventClick = {}
     )
 }
 
@@ -460,7 +470,8 @@ fun PreviewEventsScreenContent_Success() {
 @Composable
 fun PreviewEventsScreenContent_Error() {
     EventsScreenContent(
-        uiState = EventsScreenUiState.Error("Something went wrong loading events.")
+        uiState = EventsScreenUiState.Error("Something went wrong loading events."),
+        onEventClick = {}
     )
 }
 
@@ -468,6 +479,7 @@ fun PreviewEventsScreenContent_Error() {
 @Composable
 fun PreviewEventsScreenContent_Loading() {
     EventsScreenContent(
-        uiState = EventsScreenUiState.Loading
+        uiState = EventsScreenUiState.Loading,
+        onEventClick = {}
     )
 } 

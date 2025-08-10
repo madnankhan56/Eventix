@@ -2,6 +2,7 @@ package com.tech.eventix.repository
 
 import com.tech.eventix.api.RemoteDataSource
 import com.tech.eventix.domain.Event
+import com.tech.eventix.domain.EventDetail
 import com.tech.eventix.utils.ResultState
 import com.tech.eventix.utils.asResultState
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,7 @@ class EventRepositoryImpl @Inject constructor(
     private val apiKeyProvider: ApiKeyProvider,
 ) : EventRepository {
 
-    override fun getEvents(page: Int, size: Int, keyword: String?): Flow<ResultState<List<Event>>> = flow {
+    override fun getEvents(page: Int, size: Int, keyword: String?) = flow {
         getEventsFromApi(page, size, keyword)
     }.asResultState()
 
@@ -34,6 +35,13 @@ class EventRepositoryImpl @Inject constructor(
             throw e
         }
     }
+
+    override fun getEventDetails(eventId: String): Flow<ResultState<EventDetail>> = flow {
+        val networkEvent = apiService
+            .getEventDetails(eventId, apiKeyProvider.getApiKey())
+
+        emit(networkEvent.toDomainEventDetail())
+    }.asResultState()
 
     private fun getTomorrowStartDateTime(): String {
         val tomorrow = LocalDate.now().plusDays(1)
