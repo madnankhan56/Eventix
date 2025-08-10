@@ -24,10 +24,16 @@ data class NetworkVenue(
     val dmas: List<Dma>?,
     val boxOfficeInfo: BoxOfficeInfo?,
     val parkingDetail: String?,
+    val generalInfo: GeneralInfo?,
     val upcomingEvents: UpcomingEvents?,
     val ada: Ada?,
     val classifications: List<Classification>?,
     val _links: VenueLinks?
+)
+
+data class GeneralInfo(
+    val generalRule: String?,
+    val childRule: String?
 )
 
 data class City(

@@ -25,7 +25,7 @@ fun NetworkEvent.toDomainEventDetail(): EventDetail {
         name = name,
         imageUrl = bestImage?.url,
         date = dates.start.localDate,
-        time = dates.start.localTime,
+        time = dates.start.localTime ?: "",
         venue = embedded?.venues?.firstOrNull()?.toDomainVenue(),
         info = combinedInfo.takeIf { it.isNotBlank() },
         seatmapUrl = seatmap?.staticUrl,

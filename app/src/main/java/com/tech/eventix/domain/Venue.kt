@@ -8,7 +8,7 @@ data class Venue(
     val city: String,
     val state: String,
     val address: String,
-    val parkingDetail: String?,
-    val generalRule: String?,
-    val childRule: String?
+    val parkingDetail: String?= null,
+    val generalRule: String?= null,
+    val childRule: String? = null
 )

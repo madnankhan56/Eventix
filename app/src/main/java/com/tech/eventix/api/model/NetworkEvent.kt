@@ -12,7 +12,7 @@ data class NetworkEvent(
     val images: List<Image>,
     val dates: Dates,
     val classifications: List<Classification>,
-    @SerializedName("_embedded") val embedded: EventEmbedded?,
+    @SerializedName("_embedded") val embedded: EventEmbedded,
     val sales: Sales?,
     val priceRanges: List<Price>?,
     val products: List<Product>?,
@@ -25,19 +25,6 @@ data class NetworkEvent(
     val ticketLimit: TicketLimit?
 )
 
-data class Promoter(
-    val name: String?,
-    val description: String?
-)
-
-data class Seatmap(
-    val staticUrl: String?
-)
-
-data class Sales(
-    val public: Public,
-    val presales: List<Presale>?
-)
 
 data class Price(
     val type: String,
