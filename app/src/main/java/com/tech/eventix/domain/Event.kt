@@ -1,6 +1,7 @@
 package com.tech.eventix.domain
 
 data class Event(
+    val id: String,
     val name: String,
     val imageUrl: String?,
     val date: String,

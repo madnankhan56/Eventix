@@ -25,33 +25,43 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tech.eventix.uistate.EventUiState
+import com.tech.eventix.uistate.EventDetailsScreenUiState
+import com.tech.eventix.uistate.EventDetailUiState
+import com.tech.eventix.viewmodel.EventDetailsViewModel
 
 @Composable
-fun EventDetailsScreen() {
-    // For now, we will use static data. Later this will come from a ViewModel.
-    val event = EventUiState(
-        name = "MindTravel August Live-to-Headphones Silent Piano Concert in Miami Beach",
-        image = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2940&auto=format&fit=crop",
-        dateTime = "Aug 10 • 6:30 PM",
-        location = "(on the sand in front of) Indian Beach Park • Miami Beach, FL"
-    )
+fun EventDetailsScreen(
+    viewModel: EventDetailsViewModel = hiltViewModel()
+) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
-        EventDetailsContent(
-            event = event,
-            modifier = Modifier.fillMaxSize()
-        )
-        // The TopAppBar floats over the content
-        EventDetailsTopBar(
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
-        // The BottomAppBar is fixed at the bottom
-        EventDetailsBottomBar(
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        when (uiState) {
+            is EventDetailsScreenUiState.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+            is EventDetailsScreenUiState.Error -> {
+                Text(
+                    text = uiState.message,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            is EventDetailsScreenUiState.Success -> {
+                val eventUi = uiState.event.toListUi()
+                EventDetailsContent(event = eventUi, modifier = Modifier.fillMaxSize())
+
+                EventDetailsTopBar(modifier = Modifier.align(Alignment.TopCenter))
+                EventDetailsBottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+            }
+        }
     }
 }
+
+private fun EventDetailUiState.toListUi(): EventUiState =
+    EventUiState(id = "", name = name, image = image, dateTime = dateTime, location = location)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

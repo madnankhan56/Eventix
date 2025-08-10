@@ -21,15 +21,17 @@ class EventDetailsViewModel @Inject constructor(
     private val getEventDetailsUseCase: GetEventDetailsUseCase
 ) : ViewModel() {
 
-    private val eventId: String = checkNotNull(savedStateHandle[EVENT_ID_KEY]) {
-        "Event ID is required"
-    }
+    private val eventId: String? = savedStateHandle[EVENT_ID_KEY]
 
     private val _uiState = MutableStateFlow<EventDetailsScreenUiState>(EventDetailsScreenUiState.Loading)
     val uiState: StateFlow<EventDetailsScreenUiState> = _uiState.asStateFlow()
 
     init {
-        fetchDetails()
+        if (eventId == null) {
+            _uiState.value = EventDetailsScreenUiState.Error("Event ID not provided")
+        } else {
+            fetchDetails()
+        }
     }
 
     fun retry() {
@@ -38,8 +40,9 @@ class EventDetailsViewModel @Inject constructor(
 
     private fun fetchDetails() {
         _uiState.value = EventDetailsScreenUiState.Loading
+        val id = eventId ?: return
         viewModelScope.launch {
-            getEventDetailsUseCase(eventId).collectLatest { result ->
+            getEventDetailsUseCase(id).collectLatest { result ->
                 when (result) {
                     is ResultState.Success -> _uiState.value = EventDetailsScreenUiState.Success(result.data)
                     is ResultState.Error -> _uiState.value = EventDetailsScreenUiState.Error(result.getErrorMessage())

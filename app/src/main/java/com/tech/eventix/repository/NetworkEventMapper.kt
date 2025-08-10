@@ -5,7 +5,8 @@ import com.tech.eventix.domain.Event
 
 fun NetworkEvent.toDomain(): Event {
     return Event(
-        name = this.name,
+        id = id,
+        name = name,
         imageUrl = this.images.firstOrNull()?.url.orEmpty(),
         date = this.dates.start.localDate,
         time = this.dates.start.localTime ?: "19:00:00",

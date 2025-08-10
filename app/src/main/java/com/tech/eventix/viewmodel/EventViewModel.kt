@@ -90,6 +90,7 @@ class EventViewModel @Inject constructor(
 
 private fun Event.toUiState(): EventUiState {
     return EventUiState(
+        id = this.id,
         name = this.name,
         image = this.imageUrl.orEmpty(),
         dateTime = listOf(this.date, this.time).filter { it.isNotEmpty() }.joinToString(", "),

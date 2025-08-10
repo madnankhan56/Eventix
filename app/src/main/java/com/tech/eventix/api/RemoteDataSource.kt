@@ -19,7 +19,7 @@ interface RemoteDataSource {
         @Query("keyword") keyword: String? = null
     ): Root
 
-    @GET("events/{id}.json")
+    @GET("discovery/v2/events/{id}")
     suspend fun getEventDetails(
         @Path("id") eventId: String,
         @Query("apikey") apiKey: String

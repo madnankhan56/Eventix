@@ -54,7 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EventsScreen(
     viewModel: EventViewModel = hiltViewModel(),
-    onEventClick: () -> Unit,
+    onEventClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.eventsScreenUiState.collectAsStateWithLifecycle()
@@ -64,7 +64,7 @@ fun EventsScreen(
 @Composable
 fun EventsScreenContent(
     uiState: EventsScreenUiState,
-    onEventClick: () -> Unit,
+    onEventClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
@@ -255,7 +255,7 @@ fun EventsList(
     isLoadingMore: Boolean,
     paginationError: String?,
     onLoadMore: () -> Unit,
-    onEventClick: () -> Unit,
+    onEventClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Reset scroll position when search is cleared
@@ -293,7 +293,11 @@ fun EventsList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
-            EventCard(event, onEventClick = onEventClick)
+            EventCard(
+                event = event,
+                onEventClick = { onEventClick(event.id) },
+                modifier = Modifier
+            )
         }
         if (isLoadingMore) {
             item {
@@ -385,14 +389,14 @@ private fun PaginationErrorUi(error: String, onRetry: () -> Unit) {
 @Composable
 fun EventCard(
     event: EventUiState,
-    onEventClick: () -> Unit,
+    onEventClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable { onEventClick() },
+            .clickable { onEventClick(event.id) },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -444,12 +448,14 @@ fun PreviewEventsScreenContent_Success() {
         uiState = EventsScreenUiState.Success(
             events = listOf(
                 EventUiState(
+                    id = "1",
                     name = "Sample Event Name",
                     image = "https://placehold.co/600x400",
                     dateTime = "Sat, 19 July, 7:30 pm",
                     location = "Yankee Stadium, Bronx"
                 ),
                 EventUiState(
+                    id = "2",
                     name = "Another Event",
                     image = "https://placehold.co/600x400",
                     dateTime = "Sun, 20 July, 8:00 pm",
