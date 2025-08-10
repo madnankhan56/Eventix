@@ -129,7 +129,7 @@ fun EventsScreenContent(
                     focusRequester = textFieldFocusRequester,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 12.dp, end = 12.dp, top = 12.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                         .align(Alignment.TopCenter)
                 )
             }
@@ -282,10 +282,10 @@ fun EventsList(
     
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(top = 72.dp),
+        contentPadding = PaddingValues(top = 80.dp),
         modifier = modifier
             .fillMaxSize()
-            .padding(8.dp),
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
@@ -396,7 +396,7 @@ fun EventCard(event: EventUiState, modifier: Modifier = Modifier) {
                 contentDescription = event.name,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(240.dp)
+                    .height(192.dp)
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
