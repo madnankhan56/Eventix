@@ -17,8 +17,8 @@ import com.tech.eventix.ui.theme.EventixTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 sealed class Screen(val route: String) {
-    object Events : Screen("events")
-    object EventDetails : Screen("eventDetails/{eventId}") {
+    data object Events : Screen("events")
+    data object EventDetails : Screen("eventDetails/{eventId}") {
         fun createRoute(eventId: String) = "eventDetails/$eventId"
     }
 }
@@ -43,7 +43,9 @@ class MainActivity : ComponentActivity() {
                             route = Screen.EventDetails.route,
                             arguments = listOf(navArgument("eventId") { type = NavType.StringType })
                         ) {
-                            EventDetailsScreen()
+                            EventDetailsScreen(
+                                onBackClick = { navController.navigateUp() }
+                            )
                         }
                     }
                 }

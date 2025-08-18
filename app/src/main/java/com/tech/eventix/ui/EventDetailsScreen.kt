@@ -34,6 +34,7 @@ import com.tech.eventix.viewmodel.EventDetailsViewModel
 
 @Composable
 fun EventDetailsScreen(
+    onBackClick: () -> Unit = {},
     viewModel: EventDetailsViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -53,7 +54,10 @@ fun EventDetailsScreen(
                 val eventUi = uiState.event.toListUi()
                 EventDetailsContent(event = eventUi, modifier = Modifier.fillMaxSize())
 
-                EventDetailsTopBar(modifier = Modifier.align(Alignment.TopCenter))
+                EventDetailsTopBar(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    onBackClick = onBackClick
+                )
                 EventDetailsBottomBar(modifier = Modifier.align(Alignment.BottomCenter))
             }
         }

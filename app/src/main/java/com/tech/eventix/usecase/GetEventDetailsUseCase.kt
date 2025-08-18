@@ -2,7 +2,6 @@ package com.tech.eventix.usecase
 
 import com.tech.eventix.domain.EventDetail
 import com.tech.eventix.repository.EventRepository
-import com.tech.eventix.uistate.EventDetailUiState
 import com.tech.eventix.utils.ResultState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,36 +14,22 @@ import javax.inject.Inject
 class GetEventDetailsUseCase @Inject constructor(
     private val eventRepository: EventRepository
 ) {
-    operator fun invoke(eventId: String): Flow<ResultState<EventDetailUiState>> {
+    operator fun invoke(eventId: String): Flow<ResultState<EventDetail>> {
         return eventRepository.getEventDetails(eventId).map { result ->
             when (result) {
-                is ResultState.Success -> ResultState.Success(result.data.toUiState())
+                is ResultState.Success -> ResultState.Success(result.data.withFormattedFields())
                 is ResultState.Error -> result
             }
         }
     }
 
-    private fun EventDetail.toUiState(): EventDetailUiState {
+    private fun EventDetail.withFormattedFields(): EventDetail {
         val formattedDate = formatDate(date)
         val formattedTime = formatTime(time)
-        val dateTimeCombined = listOf(formattedDate, formattedTime).filter { it.isNotEmpty() }.joinToString(", ")
 
-        val location = listOfNotNull(venue?.name, venue?.city)
-            .filter { it.isNotEmpty() }
-            .joinToString(", ")
-
-        return EventDetailUiState(
-            name = name,
-            image = imageUrl.orEmpty(),
-            dateTime = dateTimeCombined,
-            location = location,
-            price = price,
-            info = info,
-            seatmapUrl = seatmapUrl,
-            products = products,
-            genre = genre,
-            ticketLimit = ticketLimit,
-            ageRestrictions = ageRestrictions
+        return copy(
+            date = formattedDate,
+            time = formattedTime
         )
     }
 
