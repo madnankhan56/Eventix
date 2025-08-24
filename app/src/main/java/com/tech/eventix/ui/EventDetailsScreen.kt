@@ -13,6 +13,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.tech.eventix.uistate.EventUiState
 import com.tech.eventix.uistate.EventDetailsScreenUiState
 import com.tech.eventix.uistate.EventDetailUiState
 import com.tech.eventix.viewmodel.EventDetailsViewModel
@@ -51,21 +53,21 @@ fun EventDetailsScreen(
                 )
             }
             is EventDetailsScreenUiState.Success -> {
-                val eventUi = uiState.event.toListUi()
-                EventDetailsContent(event = eventUi, modifier = Modifier.fillMaxSize())
+                EventDetailsContent(event = uiState.event, modifier = Modifier.fillMaxSize())
 
                 EventDetailsTopBar(
                     modifier = Modifier.align(Alignment.TopCenter),
                     onBackClick = onBackClick
                 )
-                EventDetailsBottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+                EventDetailsBottomBar(
+                    event = uiState.event,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
         }
     }
 }
 
-private fun EventDetailUiState.toListUi(): EventUiState =
-    EventUiState(id = "", name = name, image = image, dateTime = dateTime, location = location)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +100,10 @@ fun EventDetailsTopBar(
 }
 
 @Composable
-fun EventDetailsBottomBar(modifier: Modifier = Modifier) {
+fun EventDetailsBottomBar(
+    event: EventDetailUiState,
+    modifier: Modifier = Modifier
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
@@ -107,18 +112,18 @@ fun EventDetailsBottomBar(modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
                 Text(
-                    text = "$62.08",
+                    text = event.price ?: "Price TBA",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "Aug 10 • 6:30 PM",
+                    text = event.dateTime,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -139,10 +144,10 @@ fun EventDetailsBottomBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun EventDetailsContent(event: EventUiState, modifier: Modifier = Modifier) {
+fun EventDetailsContent(event: EventDetailUiState, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 90.dp) // Padding for the bottom bar
+        contentPadding = PaddingValues(bottom = 100.dp) // Padding for the bottom bar + system UI
     ) {
         item {
             EventImageHeader(event)
@@ -151,16 +156,19 @@ fun EventDetailsContent(event: EventUiState, modifier: Modifier = Modifier) {
             EventInfoSection(event)
         }
         item {
-            Divider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp))
+            EventDetailsInfoSection(event)
         }
         item {
-            OverviewSection()
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp))
+        }
+        item {
+            OverviewSection(event)
         }
     }
 }
 
 @Composable
-fun EventImageHeader(event: EventUiState) {
+fun EventImageHeader(event: EventDetailUiState) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(320.dp)) {
@@ -199,7 +207,7 @@ fun EventImageHeader(event: EventUiState) {
 }
 
 @Composable
-fun EventInfoSection(event: EventUiState) {
+fun EventInfoSection(event: EventDetailUiState) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = event.name,
@@ -219,59 +227,126 @@ fun EventInfoSection(event: EventUiState) {
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        FriendsGoing()
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
 @Composable
-fun FriendsGoing() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { }
-    ) {
-        // Placeholder for friend images
-        Row {
-             Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.LightGray))
-             Box(modifier = Modifier.size(32.dp).offset(x = (-12).dp).clip(CircleShape).background(Color.Gray))
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("See if friends are going", fontWeight = FontWeight.SemiBold)
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-    }
-}
-
-@Composable
-fun OverviewSection() {
+fun EventDetailsInfoSection(event: EventDetailUiState) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Overview",
+            text = "Event Details",
             fontWeight = FontWeight.Bold,
-            fontSize = 22.sp
+            fontSize = 20.sp,
+            modifier = Modifier.padding(bottom = 12.dp)
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Experience a musical journey of music + mindfulness this August as MindTravel creator Murray Hidary brings live-piano compositions to Miami!",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 24.sp
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Genre
+        event.genre?.let { genre ->
+            InfoCard(
+                icon = Icons.Default.MusicNote,
+                title = "Genre",
+                content = genre
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        // Age Restrictions
+        event.ageRestrictions?.let { ageRestrictions ->
+            InfoCard(
+                icon = Icons.Default.Person,
+                title = "Age Restrictions",
+                content = ageRestrictions
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        // Ticket Limit
+        event.ticketLimit?.let { ticketLimit ->
+            InfoCard(
+                icon = Icons.Default.ConfirmationNumber,
+                title = "Ticket Limit",
+                content = ticketLimit
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun InfoCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    content: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { }
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Read more",
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
-            )
             Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = content,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun OverviewSection(event: EventDetailUiState) {
+    val eventInfo = event.info
+    if (!eventInfo.isNullOrBlank()) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Text(
+                text = "Overview",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = eventInfo,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 24.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { }
+            ) {
+                Text(
+                    text = "Read more",
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight, 
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
