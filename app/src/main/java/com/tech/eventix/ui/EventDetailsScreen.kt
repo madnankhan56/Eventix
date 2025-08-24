@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,6 +31,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
 import com.tech.eventix.uistate.EventDetailsScreenUiState
 import com.tech.eventix.uistate.EventDetailUiState
 import com.tech.eventix.viewmodel.EventDetailsViewModel
@@ -147,7 +151,7 @@ fun EventDetailsBottomBar(
 fun EventDetailsContent(event: EventDetailUiState, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp) // Padding for the bottom bar + system UI
+        contentPadding = PaddingValues(bottom = 110.dp) // Padding for the bottom bar + system UI
     ) {
         item {
             EventImageHeader(event)
@@ -157,6 +161,16 @@ fun EventDetailsContent(event: EventDetailUiState, modifier: Modifier = Modifier
         }
         item {
             EventDetailsInfoSection(event)
+        }
+        item {
+            val context = LocalContext.current
+            SeatMapSection(
+                event = event,
+                onSeatMapClick = { url ->
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                }
+            )
         }
         item {
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp))
@@ -309,6 +323,62 @@ fun InfoCard(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun SeatMapSection(
+    event: EventDetailUiState,
+    onSeatMapClick: (String) -> Unit = {}
+) {
+    event.seatmapUrl?.let { seatmapUrl ->
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                text = "Seat Map",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSeatMapClick(seatmapUrl) },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.EventSeat,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "View Seat Map",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "Choose your perfect seat",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }
