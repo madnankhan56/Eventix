@@ -61,7 +61,8 @@ class EventDetailsViewModel @Inject constructor(
             products = products,
             genre = genre,
             ticketLimit = ticketLimit,
-            ageRestrictions = ageRestrictions
+            ageRestrictions = ageRestrictions,
+            ticketUrl = ticketUrl
         )
     }
 

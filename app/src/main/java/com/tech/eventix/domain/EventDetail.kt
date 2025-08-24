@@ -17,5 +17,6 @@ data class EventDetail(
     val products: List<String>,
     val genre: String?,
     val ticketLimit: String?,
-    val ageRestrictions: String?
+    val ageRestrictions: String?,
+    val ticketUrl: String?
 )

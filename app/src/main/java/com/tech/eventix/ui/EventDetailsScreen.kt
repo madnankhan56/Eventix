@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -21,7 +20,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -63,8 +61,13 @@ fun EventDetailsScreen(
                     modifier = Modifier.align(Alignment.TopCenter),
                     onBackClick = onBackClick
                 )
+                val context = LocalContext.current
                 EventDetailsBottomBar(
                     event = uiState.event,
+                    onGetTicketsClick = { url ->
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
+                    },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
@@ -106,6 +109,7 @@ fun EventDetailsTopBar(
 @Composable
 fun EventDetailsBottomBar(
     event: EventDetailUiState,
+    onGetTicketsClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -133,13 +137,16 @@ fun EventDetailsBottomBar(
                 )
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { 
+                    event.ticketUrl?.let { url -> onGetTicketsClick(url) }
+                },
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
                 ),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+                enabled = event.ticketUrl != null
             ) {
                 Text("Get tickets")
             }
@@ -402,21 +409,6 @@ fun OverviewSection(event: EventDetailUiState) {
                 lineHeight = 24.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { }
-            ) {
-                Text(
-                    text = "Read more",
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight, 
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
         }
     }
 }
