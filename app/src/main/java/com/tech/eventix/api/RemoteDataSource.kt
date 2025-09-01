@@ -19,6 +19,8 @@ interface RemoteDataSource {
         @Query("keyword") keyword: String? = null
     ): Root
 
+
+    @Caceh(muinutes = 5)
     @GET("discovery/v2/events/{id}")
     suspend fun getEventDetails(
         @Path("id") eventId: String,

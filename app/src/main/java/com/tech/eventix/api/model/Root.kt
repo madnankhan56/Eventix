@@ -1,5 +1,8 @@
 package com.tech.eventix.api.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Root(
     val _embedded: RootEmbedded,
     val _links: RootLinks,
@@ -10,18 +13,21 @@ data class Root(
     fun getLinks() = _links
 }
 
+@Serializable
 data class RootEmbedded(
     val events: List<NetworkEvent>
 )
 
+@Serializable
 data class RootLinks(
-    val first: Link,
-    val prev: Link,
-    val self: Link,
-    val next: Link,
-    val last: Link
+    val first: Link? = null,
+    val prev: Link? = null,
+    val self: Link? = null,
+    val next: Link? = null,
+    val last: Link? = null
 )
 
+@Serializable
 data class Page(
     val size: Int,
     val totalElements: Int,

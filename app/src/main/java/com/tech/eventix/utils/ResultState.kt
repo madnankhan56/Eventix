@@ -1,5 +1,6 @@
 package com.tech.eventix.utils
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
             ResultState.Success(it)
         }
         .catch {
+            Log.e("API",  it.message.toString())
             emit(ResultState.Error(it))
         }
 }

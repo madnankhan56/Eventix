@@ -21,4 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Eventix"
 include(":app")
+include(":networking-kit")
+project(":networking-kit").projectDir = file("../networkingkit/networking-kit")
  

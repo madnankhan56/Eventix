@@ -1,7 +1,9 @@
 package com.tech.eventix.api.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class NetworkEvent(
     val name: String,
     val type: String,
@@ -11,21 +13,22 @@ data class NetworkEvent(
     val locale: String,
     val images: List<Image>,
     val dates: Dates,
-    val classifications: List<Classification>,
-    @SerializedName("_embedded") val embedded: EventEmbedded,
-    val sales: Sales?,
-    val priceRanges: List<Price>?,
-    val products: List<Product>?,
-    val info: String?,
-    val pleaseNote: String?,
-    val promoter: Promoter?,
-    val seatmap: Seatmap?,
-    val accessibility: Accessibility?,
-    val ageRestrictions: AgeRestrictions?,
-    val ticketLimit: TicketLimit?
+    val classifications: List<Classification>? = null,
+    @SerialName("_embedded") val embedded: EventEmbedded,
+    val sales: Sales? = null,
+    val priceRanges: List<Price>? = null,
+    val products: List<Product>? = null,
+    val info: String? = null,
+    val pleaseNote: String? = null,
+    val promoter: Promoter? = null,
+    val seatmap: Seatmap? = null,
+    val accessibility: Accessibility? = null,
+    val ageRestrictions: AgeRestrictions? = null,
+    val ticketLimit: TicketLimit? = null
 )
 
 
+@Serializable
 data class Price(
     val type: String,
     val currency: String,
@@ -33,6 +36,7 @@ data class Price(
     val max: Double
 )
 
+@Serializable
 data class Public(
     val startDateTime: String?,
     val endDateTime: String?

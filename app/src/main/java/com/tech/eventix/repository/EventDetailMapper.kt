@@ -26,7 +26,7 @@ fun NetworkEvent.toDomainEventDetail(): EventDetail {
         seatmapUrl = seatmap?.staticUrl,
         price = priceString,
         products = productNames,
-        genre = classifications.firstOrNull { it.primary }?.genre?.name,
+        genre = classifications?.firstOrNull { it.primary }?.genre?.name,
         ticketLimit = ticketLimit?.info,
         ageRestrictions = ageRestrictions?.legalAgeEnforced?.let { if (it) "Enforced" else "Not Enforced" },
         ticketUrl = url
