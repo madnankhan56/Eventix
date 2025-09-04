@@ -48,6 +48,7 @@ class EventViewModelTest {
     fun viewModel_shouldEmitSuccessWithValidData_whenFirstPageLoads() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val validEvent = Event(
+            id = "event-123",
             name = "Test Concert",
             imageUrl = "https://example.com/image.jpg",
             date = "Fri, 25 December",
@@ -560,6 +561,7 @@ class EventViewModelTest {
     fun viewModel_shouldHandleEmptyVenueFields_whenVenueFieldsAreEmpty() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val eventWithEmptyVenueFields = Event(
+            id = "event-456",
             name = "Test Event",
             imageUrl = "https://example.com/image.jpg",
             date = "2024-03-25",
@@ -611,6 +613,7 @@ class EventViewModelTest {
     // Helper methods
     private fun createValidEvent(name: String): Event {
         return Event(
+            id = "event-${name.hashCode()}",
             name = name,
             imageUrl = "https://example.com/image.jpg",
             date = "Fri, 25 December",
@@ -627,6 +630,7 @@ class EventViewModelTest {
 
     private fun Event.toExpectedUiState(): EventUiState {
         return EventUiState(
+            id = this.id,
             name = this.name,
             image = this.imageUrl.orEmpty(),
             dateTime = listOf(this.date, this.time).filter { it.isNotEmpty() }.joinToString(", "),

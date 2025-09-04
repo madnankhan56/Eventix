@@ -274,7 +274,6 @@ class EventRepositoryImplTest {
                     fallback = false
                 )
             ),
-            sales = mockk(),
             dates = Dates(
                 start = StartDate(
                     localDate = "2024-12-25",
@@ -290,17 +289,7 @@ class EventRepositoryImplTest {
                 spanMultipleDays = false
             ),
             classifications = emptyList(),
-            promoter = mockk(),
-            promoters = emptyList(),
-            info = null,
-            pleaseNote = null,
-            seatmap = null,
-            accessibility = null,
-            ticketLimit = null,
-            ageRestrictions = null,
-            ticketing = null,
-            _links = mockk(),
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = listOf(
                     NetworkVenue(
                         name = "Madison Square Garden",
@@ -321,6 +310,7 @@ class EventRepositoryImplTest {
                         dmas = null,
                         boxOfficeInfo = null,
                         parkingDetail = null,
+                        generalInfo = null,
                         upcomingEvents = null,
                         ada = null,
                         classifications = null,
@@ -328,7 +318,17 @@ class EventRepositoryImplTest {
                     )
                 ),
                 attractions = emptyList()
-            )
+            ),
+            sales = mockk(),
+            priceRanges = null,
+            products = null,
+            info = null,
+            pleaseNote = null,
+            promoter = mockk(),
+            seatmap = null,
+            accessibility = null,
+            ageRestrictions = null,
+            ticketLimit = null
         )
 
         val mockRoot = createMockRoot(listOf(networkEvent))
@@ -340,6 +340,7 @@ class EventRepositoryImplTest {
         val expectedEvents = listOf(
             createExpectedEvent(
                 name = "Test Concert",
+                id = "123",
                 time = "20:00:00",
                 venue = createExpectedVenue(
                     name = "Madison Square Garden",
@@ -448,7 +449,6 @@ class EventRepositoryImplTest {
                     fallback = true
                 )
             ),
-            sales = mockk(),
             dates = Dates(
                 start = StartDate(
                     localDate = "2024-12-31",
@@ -464,17 +464,7 @@ class EventRepositoryImplTest {
                 spanMultipleDays = false
             ),
             classifications = emptyList(),
-            promoter = mockk(),
-            promoters = emptyList(),
-            info = null,
-            pleaseNote = null,
-            seatmap = null,
-            accessibility = null,
-            ticketLimit = null,
-            ageRestrictions = null,
-            ticketing = null,
-            _links = mockk(),
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = listOf(
                     NetworkVenue(
                         name = "Test Arena",
@@ -495,6 +485,7 @@ class EventRepositoryImplTest {
                         dmas = null,
                         boxOfficeInfo = null,
                         parkingDetail = null,
+                        generalInfo = null,
                         upcomingEvents = null,
                         ada = null,
                         classifications = null,
@@ -502,7 +493,17 @@ class EventRepositoryImplTest {
                     )
                 ),
                 attractions = emptyList()
-            )
+            ),
+            sales = mockk(),
+            priceRanges = null,
+            products = null,
+            info = null,
+            pleaseNote = null,
+            promoter = mockk(),
+            seatmap = null,
+            accessibility = null,
+            ageRestrictions = null,
+            ticketLimit = null
         )
 
         // Act
@@ -583,7 +584,7 @@ class EventRepositoryImplTest {
     fun toDomain_WithEmptyVenues_ShouldHaveNullVenue() {
         // Arrange
         val networkEvent = createBasicNetworkEvent("Event No Venues").copy(
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = emptyList(), // No venues
                 attractions = emptyList()
             )
@@ -618,6 +619,7 @@ class EventRepositoryImplTest {
             dmas = null,
             boxOfficeInfo = null,
             parkingDetail = null,
+            generalInfo = null,
             upcomingEvents = null,
             ada = null,
             classifications = null,
@@ -643,6 +645,7 @@ class EventRepositoryImplTest {
             dmas = null,
             boxOfficeInfo = null,
             parkingDetail = null,
+            generalInfo = null,
             upcomingEvents = null,
             ada = null,
             classifications = null,
@@ -650,7 +653,7 @@ class EventRepositoryImplTest {
         )
 
         val networkEvent = createBasicNetworkEvent("Event Multiple Venues").copy(
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = listOf(venue1, venue2), // Multiple venues
                 attractions = emptyList()
             )
@@ -722,6 +725,7 @@ class EventRepositoryImplTest {
     // Expected Domain Object Helpers
     private fun createExpectedEvent(
         name: String,
+        id: String = "event-id",
         imageUrl: String = "https://example.com/image.jpg",
         date: String = "2024-12-25", 
         time: String = "19:00:00",
@@ -729,6 +733,7 @@ class EventRepositoryImplTest {
         test: Boolean = false
     ): Event {
         return Event(
+            id = id,
             name = name,
             imageUrl = imageUrl,
             date = date,
@@ -769,7 +774,6 @@ class EventRepositoryImplTest {
                     fallback = false
                 )
             ),
-            sales = mockk(),
             dates = Dates(
                 start = StartDate(
                     localDate = "2024-12-25",
@@ -785,17 +789,7 @@ class EventRepositoryImplTest {
                 spanMultipleDays = false
             ),
             classifications = emptyList(),
-            promoter = mockk(),
-            promoters = emptyList(),
-            info = null,
-            pleaseNote = null,
-            seatmap = null,
-            accessibility = null,
-            ticketLimit = null,
-            ageRestrictions = null,
-            ticketing = null,
-            _links = mockk(),
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = listOf(
                     NetworkVenue(
                         name = "Test Venue",
@@ -816,6 +810,7 @@ class EventRepositoryImplTest {
                         dmas = null,
                         boxOfficeInfo = null,
                         parkingDetail = null,
+                        generalInfo = null,
                         upcomingEvents = null,
                         ada = null,
                         classifications = null,
@@ -823,7 +818,17 @@ class EventRepositoryImplTest {
                     )
                 ),
                 attractions = emptyList()
-            )
+            ),
+            sales = mockk(),
+            priceRanges = null,
+            products = null,
+            info = null,
+            pleaseNote = null,
+            promoter = mockk(),
+            seatmap = null,
+            accessibility = null,
+            ageRestrictions = null,
+            ticketLimit = null
         )
     }
 
@@ -844,7 +849,6 @@ class EventRepositoryImplTest {
                     fallback = false
                 )
             ),
-            sales = mockk(),
             dates = Dates(
                 start = StartDate(
                     localDate = "2024-12-25",
@@ -860,20 +864,20 @@ class EventRepositoryImplTest {
                 spanMultipleDays = false
             ),
             classifications = emptyList(),
-            promoter = mockk(),
-            promoters = emptyList(),
-            info = null,
-            pleaseNote = null,
-            seatmap = null,
-            accessibility = null,
-            ticketLimit = null,
-            ageRestrictions = null,
-            ticketing = null,
-            _links = mockk(),
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = emptyList(), // No venues
                 attractions = emptyList()
-            )
+            ),
+            sales = mockk(),
+            priceRanges = null,
+            products = null,
+            info = null,
+            pleaseNote = null,
+            promoter = mockk(),
+            seatmap = null,
+            accessibility = null,
+            ageRestrictions = null,
+            ticketLimit = null
         )
     }
 
@@ -894,7 +898,6 @@ class EventRepositoryImplTest {
                     fallback = false
                 )
             ),
-            sales = mockk(),
             dates = Dates(
                 start = StartDate(
                     localDate = "2024-12-25",
@@ -910,17 +913,7 @@ class EventRepositoryImplTest {
                 spanMultipleDays = false
             ),
             classifications = emptyList(),
-            promoter = mockk(),
-            promoters = emptyList(),
-            info = null,
-            pleaseNote = null,
-            seatmap = null,
-            accessibility = null,
-            ticketLimit = null,
-            ageRestrictions = null,
-            ticketing = null,
-            _links = mockk(),
-            _embedded = EventEmbedded(
+            embedded = EventEmbedded(
                 venues = listOf(
                     NetworkVenue(
                         name = "Default Venue",
@@ -941,6 +934,7 @@ class EventRepositoryImplTest {
                         dmas = null,
                         boxOfficeInfo = null,
                         parkingDetail = null,
+                        generalInfo = null,
                         upcomingEvents = null,
                         ada = null,
                         classifications = null,
@@ -948,7 +942,17 @@ class EventRepositoryImplTest {
                     )
                 ),
                 attractions = emptyList()
-            )
+            ),
+            sales = mockk(),
+            priceRanges = null,
+            products = null,
+            info = null,
+            pleaseNote = null,
+            promoter = mockk(),
+            seatmap = null,
+            accessibility = null,
+            ageRestrictions = null,
+            ticketLimit = null
         )
     }
 

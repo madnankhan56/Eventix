@@ -485,6 +485,7 @@ class BrowseEventsUseCaseTest {
 
     private fun createValidEvent(name: String): Event {
         return Event(
+            id = "id-1",
             name = name,
             imageUrl = "https://example.com/image.jpg",
             date = "2024-12-25",
