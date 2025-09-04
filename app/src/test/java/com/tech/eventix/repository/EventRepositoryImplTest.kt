@@ -258,77 +258,20 @@ class EventRepositoryImplTest {
     @Test
     fun getEvents_WithNetworkEventMapping_ShouldCorrectlyMapToDomainEvent() = runTest {
         // Arrange
-        val networkEvent = NetworkEvent(
+        val venue = createNetworkVenue(
+            name = "Madison Square Garden",
+            id = "venue-123", 
+            city = "New York",
+            state = "NY",
+            address = "4 Pennsylvania Plaza",
+            postalCode = "10001",
+            timezone = "America/New_York"
+        )
+        val networkEvent = createMockNetworkEvent(
             name = "Test Concert",
-            type = "event",
             id = "123",
-            test = false,
-            url = "https://example.com",
-            locale = "en-us",
-            images = listOf(
-                Image(
-                    ratio = "16_9",
-                    url = "https://example.com/image.jpg",
-                    width = 1024,
-                    height = 576,
-                    fallback = false
-                )
-            ),
-            dates = Dates(
-                start = StartDate(
-                    localDate = "2024-12-25",
-                    localTime = "20:00:00",
-                    dateTime = "2024-12-25T20:00:00Z",
-                    dateTBD = false,
-                    dateTBA = false,
-                    timeTBA = false,
-                    noSpecificTime = false
-                ),
-                timezone = "America/New_York",
-                status = Status(code = "onsale"),
-                spanMultipleDays = false
-            ),
-            classifications = emptyList(),
-            embedded = EventEmbedded(
-                venues = listOf(
-                    NetworkVenue(
-                        name = "Madison Square Garden",
-                        type = "venue",
-                        id = "venue-123",
-                        test = false,
-                        url = "https://venue.com",
-                        locale = "en-us",
-                        images = null,
-                        postalCode = "10001",
-                        timezone = "America/New_York",
-                        city = City(name = "New York"),
-                        state = State(name = "New York", stateCode = "NY"),
-                        country = null,
-                        address = Address(line1 = "4 Pennsylvania Plaza"),
-                        location = null,
-                        markets = null,
-                        dmas = null,
-                        boxOfficeInfo = null,
-                        parkingDetail = null,
-                        generalInfo = null,
-                        upcomingEvents = null,
-                        ada = null,
-                        classifications = null,
-                        _links = null
-                    )
-                ),
-                attractions = emptyList()
-            ),
-            sales = mockk(),
-            priceRanges = null,
-            products = null,
-            info = null,
-            pleaseNote = null,
-            promoter = mockk(),
-            seatmap = null,
-            accessibility = null,
-            ageRestrictions = null,
-            ticketLimit = null
+            time = "20:00:00",
+            venue = venue
         )
 
         val mockRoot = createMockRoot(listOf(networkEvent))
@@ -757,66 +700,26 @@ class EventRepositoryImplTest {
         )
     }
 
-    private fun createMockNetworkEvent(name: String): NetworkEvent {
+    private fun createMockNetworkEvent(
+        name: String,
+        id: String = "event-id",
+        date: String = "2024-12-25",
+        time: String = "19:00:00",
+        venue: NetworkVenue? = createDefaultNetworkVenue(),
+        test: Boolean = false
+    ): NetworkEvent {
         return NetworkEvent(
             name = name,
             type = "event",
-            id = "event-id",
-            test = false,
+            id = id,
+            test = test,
             url = "https://example.com",
             locale = "en-us",
-            images = listOf(
-                Image(
-                    ratio = "16_9",
-                    url = "https://example.com/image.jpg",
-                    width = 1024,
-                    height = 576,
-                    fallback = false
-                )
-            ),
-            dates = Dates(
-                start = StartDate(
-                    localDate = "2024-12-25",
-                    localTime = "19:00:00",
-                    dateTime = "2024-12-25T19:00:00Z",
-                    dateTBD = false,
-                    dateTBA = false,
-                    timeTBA = false,
-                    noSpecificTime = false
-                ),
-                timezone = "America/New_York",
-                status = Status(code = "onsale"),
-                spanMultipleDays = false
-            ),
+            images = createDefaultImages(),
+            dates = createDefaultDates(date, time),
             classifications = emptyList(),
             embedded = EventEmbedded(
-                venues = listOf(
-                    NetworkVenue(
-                        name = "Test Venue",
-                        type = "venue",
-                        id = "venue-id",
-                        test = false,
-                        url = "https://venue.com",
-                        locale = "en-us",
-                        images = null,
-                        postalCode = null,
-                        timezone = null,
-                        city = City(name = "Test City"),
-                        state = State(name = "Test State", stateCode = "TS"),
-                        country = null,
-                        address = Address(line1 = "123 Test Street"),
-                        location = null,
-                        markets = null,
-                        dmas = null,
-                        boxOfficeInfo = null,
-                        parkingDetail = null,
-                        generalInfo = null,
-                        upcomingEvents = null,
-                        ada = null,
-                        classifications = null,
-                        _links = null
-                    )
-                ),
+                venues = venue?.let { listOf(it) } ?: emptyList(),
                 attractions = emptyList()
             ),
             sales = mockk(),
@@ -829,131 +732,95 @@ class EventRepositoryImplTest {
             accessibility = null,
             ageRestrictions = null,
             ticketLimit = null
+        )
+    }
+
+    private fun createDefaultImages(): List<Image> {
+        return listOf(
+            Image(
+                ratio = "16_9",
+                url = "https://example.com/image.jpg",
+                width = 1024,
+                height = 576,
+                fallback = false
+            )
+        )
+    }
+
+    private fun createDefaultDates(date: String, time: String): Dates {
+        return Dates(
+            start = StartDate(
+                localDate = date,
+                localTime = time,
+                dateTime = "${date}T${time}Z",
+                dateTBD = false,
+                dateTBA = false,
+                timeTBA = false,
+                noSpecificTime = false
+            ),
+            timezone = "America/New_York",
+            status = Status(code = "onsale"),
+            spanMultipleDays = false
+        )
+    }
+
+    private fun createDefaultNetworkVenue(): NetworkVenue {
+        return createNetworkVenue(
+            name = "Test Venue",
+            city = "Test City",
+            state = "TS",
+            address = "123 Test Street"
+        )
+    }
+
+    private fun createNetworkVenue(
+        name: String,
+        id: String = "venue-id",
+        city: String,
+        state: String,
+        address: String,
+        postalCode: String? = null,
+        timezone: String? = null
+    ): NetworkVenue {
+        return NetworkVenue(
+            name = name,
+            type = "venue",
+            id = id,
+            test = false,
+            url = "https://venue.com",
+            locale = "en-us",
+            images = null,
+            postalCode = postalCode,
+            timezone = timezone,
+            city = City(name = city),
+            state = State(name = "$city State", stateCode = state),
+            country = null,
+            address = Address(line1 = address),
+            location = null,
+            markets = null,
+            dmas = null,
+            boxOfficeInfo = null,
+            parkingDetail = null,
+            generalInfo = null,
+            upcomingEvents = null,
+            ada = null,
+            classifications = null,
+            _links = null
         )
     }
 
     private fun createMockNetworkEventWithoutVenue(name: String): NetworkEvent {
-        return NetworkEvent(
-            name = name,
-            type = "event",
-            id = "event-id",
-            test = false,
-            url = "https://example.com",
-            locale = "en-us",
-            images = listOf(
-                Image(
-                    ratio = "16_9",
-                    url = "https://example.com/image.jpg",
-                    width = 1024,
-                    height = 576,
-                    fallback = false
-                )
-            ),
-            dates = Dates(
-                start = StartDate(
-                    localDate = "2024-12-25",
-                    localTime = "19:00:00",
-                    dateTime = "2024-12-25T19:00:00Z",
-                    dateTBD = false,
-                    dateTBA = false,
-                    timeTBA = false,
-                    noSpecificTime = false
-                ),
-                timezone = "America/New_York",
-                status = Status(code = "onsale"),
-                spanMultipleDays = false
-            ),
-            classifications = emptyList(),
-            embedded = EventEmbedded(
-                venues = emptyList(), // No venues
-                attractions = emptyList()
-            ),
-            sales = mockk(),
-            priceRanges = null,
-            products = null,
-            info = null,
-            pleaseNote = null,
-            promoter = mockk(),
-            seatmap = null,
-            accessibility = null,
-            ageRestrictions = null,
-            ticketLimit = null
-        )
+        return createMockNetworkEvent(name = name, venue = null)
     }
 
     private fun createBasicNetworkEvent(name: String): NetworkEvent {
-        return NetworkEvent(
-            name = name,
-            type = "event",
-            id = "event-id",
-            test = false,
-            url = "https://example.com",
-            locale = "en-us",
-            images = listOf(
-                Image(
-                    ratio = "16_9",
-                    url = "https://example.com/image.jpg",
-                    width = 1024,
-                    height = 576,
-                    fallback = false
-                )
-            ),
-            dates = Dates(
-                start = StartDate(
-                    localDate = "2024-12-25",
-                    localTime = "19:00:00",
-                    dateTime = "2024-12-25T19:00:00Z",
-                    dateTBD = false,
-                    dateTBA = false,
-                    timeTBA = false,
-                    noSpecificTime = false
-                ),
-                timezone = "America/New_York",
-                status = Status(code = "onsale"),
-                spanMultipleDays = false
-            ),
-            classifications = emptyList(),
-            embedded = EventEmbedded(
-                venues = listOf(
-                    NetworkVenue(
-                        name = "Default Venue",
-                        type = "venue",
-                        id = "venue-id",
-                        test = false,
-                        url = "https://venue.com",
-                        locale = "en-us",
-                        images = null,
-                        postalCode = null,
-                        timezone = null,
-                        city = City(name = "Default City"),
-                        state = State(name = "Default State", stateCode = "DS"),
-                        country = null,
-                        address = Address(line1 = "123 Default Street"),
-                        location = null,
-                        markets = null,
-                        dmas = null,
-                        boxOfficeInfo = null,
-                        parkingDetail = null,
-                        generalInfo = null,
-                        upcomingEvents = null,
-                        ada = null,
-                        classifications = null,
-                        _links = null
-                    )
-                ),
-                attractions = emptyList()
-            ),
-            sales = mockk(),
-            priceRanges = null,
-            products = null,
-            info = null,
-            pleaseNote = null,
-            promoter = mockk(),
-            seatmap = null,
-            accessibility = null,
-            ageRestrictions = null,
-            ticketLimit = null
+        val defaultVenue = createNetworkVenue(
+            name = "Default Venue",
+            city = "Default City", 
+            state = "DS",
+            address = "123 Default Street"
         )
+        return createMockNetworkEvent(name = name, venue = defaultVenue)
     }
 
     private fun createMockRoot(events: List<NetworkEvent>): Root {
