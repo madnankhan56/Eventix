@@ -6,21 +6,64 @@ A modern Android application built with **Clean Architecture** principles, showc
 
 This project implements **Clean Architecture** with clear separation of concerns across multiple layers, ensuring maintainability, testability, and scalability.
 
-### Architecture Layers
+### Clean Architecture Layers
 
 ```
 ┌─────────────────────────────────────────┐
-│            Presentation Layer           │
-├─────────────────────────────────────────┤
-│               Domain Layer              │
-├─────────────────────────────────────────┤
-│                Data Layer               │
+│         📱 PRESENTATION LAYER           │
+│                                         │
+│  • Compose UI (EventsScreen)           │
+│  • ViewModel (StateFlow)               │
+│  • collectAsStateWithLifecycle()       │
 └─────────────────────────────────────────┘
+                    │
+                    │ Kotlin Flow
+                    ▼
+┌─────────────────────────────────────────┐
+│          🧠 DOMAIN LAYER                │
+│                                         │
+│  • Use Cases (BrowseEvents)            │
+│  • Domain Models (Event, Venue)        │
+│  • .map() .filter() .catch()           │
+└─────────────────────────────────────────┘
+                    │
+                    │ Kotlin Flow
+                    ▼
+┌─────────────────────────────────────────┐
+│           🗄️ DATA LAYER                 │
+│                                         │
+│  • Repository (EventRepository)        │
+│  • Network Models & Mapper             │
+│  • flow { emit() } .catch()             │
+└─────────────────────────────────────────┘
+                    │
+                    │ Retrofit
+                    ▼
+           🌐 TICKETMASTER API
+```
+
+### Kotlin Flow Data Pipeline
+
+```
+Repository        UseCase         ViewModel         UI
+    │                │                │             │
+flow {            .map()         .transform()   .collectAs
+emit()            .catch()       .stateIn()     StateWith
+}                 .filter()      StateFlow      Lifecycle()
+
+Flow<ResultState> → Flow<Event> → StateFlow<UiState> → @Composable
+```
+
+### Flow Benefits in Architecture
+
+```
+🔄 Reactive Updates    ⚡ Async Operations    🧠 Memory Efficient
+🎯 Backpressure       🛡️ Error Handling     📱 Lifecycle Aware
 ```
 
 ## 🌊 Unidirectional Data Flow (UDF) Implementation
 
-The EventViewModel demonstrates perfect UDF architecture using MutableStateFlow:
+The EventViewModel demonstrates perfect UDF architecture using Kotlin flows:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -75,7 +118,7 @@ The EventViewModel demonstrates perfect UDF architecture using MutableStateFlow:
     └─────────────────────────────────────────────────────────────────┘
 ```
 
-### **UDF Benefits with MutableStateFlow:**
+### **UDF Benefits with koltin flow:**
 - 🔒 **Compiler-enforced unidirectional flow**
 - 🔄 **Reactive state propagation** 
 - 🧵 **Thread-safe concurrent updates**
