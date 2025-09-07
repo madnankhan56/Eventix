@@ -9,8 +9,6 @@ import com.tech.eventix.utils.ResultState
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -334,7 +332,7 @@ class EventViewModelTest {
     }
 
     @Test
-    fun viewModel_shouldReplaceEventsAndResetPage_whenKeywordProvided() = runTest(UnconfinedTestDispatcher()) {
+    fun viewModel_shouldReplaceEventsAndResetPage_whenSearchKeywordProvided() = runTest(UnconfinedTestDispatcher()) {
         // ARRANGE
         val initialEvents = listOf(createValidEvent("Initial Event"))
         val searchResults = listOf(createValidEvent("Search Result"))
