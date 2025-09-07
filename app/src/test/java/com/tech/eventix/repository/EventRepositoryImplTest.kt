@@ -3,6 +3,7 @@ package com.tech.eventix.repository
 import com.tech.eventix.api.RemoteDataSource
 import com.tech.eventix.api.model.*
 import com.tech.eventix.domain.Event
+import com.tech.eventix.domain.EventDetail
 import com.tech.eventix.domain.Venue
 import app.cash.turbine.test
 import com.tech.eventix.utils.ResultState
@@ -745,7 +746,7 @@ class EventRepositoryImplTest {
             postalCode = postalCode,
             timezone = timezone,
             city = City(name = city),
-            state = State(name = "$city State", stateCode = state),
+            state = State(name = state, stateCode = state),
             country = null,
             address = Address(line1 = address),
             location = null,
@@ -785,6 +786,388 @@ class EventRepositoryImplTest {
                 totalPages = 1,
                 number = 0
             )
+        )
+    }
+
+    // EventDetails-specific tests
+    @Test
+    fun getEventDetails_WithValidEventId_ShouldEmitSuccessWithMappedEventDetail() = runTest {
+        // Arrange
+        val eventId = "event-123"
+        val networkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Concert Details",
+            info = "Concert information",
+            pleaseNote = "Please note details",
+            priceMin = 25.0,
+            priceMax = 100.0,
+            productNames = listOf("VIP", "General"),
+            genre = "Rock",
+            ticketLimitInfo = "8 per person",
+            ageEnforced = true,
+            seatmapUrl = "https://example.com/seatmap.jpg"
+        )
+
+        val expectedEventDetail = createExpectedEventDetail(
+            id = eventId,
+            name = "Concert Details",
+            imageUrl = "https://example.com/image.jpg", // from createDefaultImages()
+            date = "2024-12-25", // from createMockNetworkEvent defaults
+            time = "19:00:00", // from createMockNetworkEvent defaults  
+            venue = createExpectedVenue( // from createDefaultNetworkVenue()
+                name = "Test Venue",
+                city = "Test City",
+                state = "TS",
+                address = "123 Test Street"
+            ),
+            info = "Concert information\n\nPlease note details",
+            price = "$25.00 - $100.00",
+            products = listOf("VIP", "General"),
+            genre = "Rock", 
+            ticketLimit = "8 per person",
+            ageRestrictions = "Enforced",
+            seatmapUrl = "https://example.com/seatmap.jpg",
+            ticketUrl = "https://example.com" // from createMockNetworkEvent URL field
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns networkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            assertTrue("Expected Success result", result is ResultState.Success)
+            
+            val actualEventDetail = (result as ResultState.Success).data
+            assertEquals(expectedEventDetail, actualEventDetail)
+            
+            awaitComplete()
+        }
+
+        // Verify API was called with correct parameters
+        coVerify(exactly = 1) { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        }
+        verify(exactly = 1) { mockApiKeyProvider.getApiKey() }
+    }
+
+    @Test
+    fun getEventDetails_WithApiThrowsException_ShouldEmitError() = runTest {
+        // Arrange
+        val eventId = "event-123"
+        val expectedException = RuntimeException("Network error")
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } throws expectedException
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            assertTrue("Expected Error result", result is ResultState.Error)
+            
+            val errorMessage = (result as ResultState.Error).getErrorMessage()
+            assertEquals("Network error", errorMessage)
+            
+            awaitComplete()
+        }
+
+        // Verify API was called
+        coVerify(exactly = 1) { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        }
+    }
+
+    @Test
+    fun getEventDetails_WithCustomApiKey_ShouldUseCorrectApiKey() = runTest {
+        // Arrange
+        val eventId = "event-456"
+        val customApiKey = "custom-key-789"
+        val networkEvent = createMockNetworkEventForDetails(id = eventId, name = "Test Event")
+        
+        every { mockApiKeyProvider.getApiKey() } returns customApiKey
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, customApiKey)
+        } returns networkEvent
+
+        // Act
+        repository.getEventDetails(eventId).test {
+            awaitItem()
+            awaitComplete()
+        }
+
+        // Assert
+        coVerify(exactly = 1) { 
+            mockApiService.getEventDetails(eventId, customApiKey)
+        }
+        verify(exactly = 1) { mockApiKeyProvider.getApiKey() }
+    }
+
+    @Test
+    fun getEventDetails_WithMinimalNetworkEvent_ShouldMapToEventDetailWithDefaults() = runTest {
+        // Arrange
+        val eventId = "minimal-event"
+        val minimalNetworkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Minimal Event",
+            info = null,
+            pleaseNote = null,
+            priceMin = null,
+            priceMax = null,
+            productNames = emptyList(),
+            genre = null,
+            ticketLimitInfo = null,
+            ageEnforced = null,
+            seatmapUrl = null,
+            venue = null
+        )
+
+        val expectedEventDetail = createExpectedEventDetail(
+            id = eventId,
+            name = "Minimal Event",
+            imageUrl = "https://example.com/image.jpg", // from createDefaultImages()
+            date = "2024-12-25", // from createMockNetworkEvent defaults
+            time = "19:00:00", // from createMockNetworkEvent defaults
+            info = null,
+            price = null,
+            products = emptyList(),
+            genre = null,
+            ticketLimit = null,
+            ageRestrictions = null,
+            seatmapUrl = null,
+            venue = null,
+            ticketUrl = "https://example.com" // from createMockNetworkEvent URL field
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns minimalNetworkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            assertTrue("Expected Success result", result is ResultState.Success)
+            
+            val actualEventDetail = (result as ResultState.Success).data
+            assertEquals(expectedEventDetail, actualEventDetail)
+            
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun getEventDetails_WithComplexPriceRanges_ShouldUseFirstPriceRange() = runTest {
+        // Arrange  
+        val eventId = "price-event"
+        val networkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Price Event",
+            priceMin = 15.99,
+            priceMax = 199.99
+        )
+
+        val expectedEventDetail = createExpectedEventDetail(
+            id = eventId,
+            name = "Price Event", 
+            price = "$15.99 - $199.99"
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns networkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            assertTrue("Expected Success result", result is ResultState.Success)
+            
+            val actualEventDetail = (result as ResultState.Success).data
+            assertEquals(expectedEventDetail.price, actualEventDetail.price)
+            assertEquals("$15.99 - $199.99", actualEventDetail.price)
+            
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun getEventDetails_WithMultipleClassifications_ShouldUsePrimaryGenre() = runTest {
+        // Arrange
+        val eventId = "genre-event"
+        val networkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Genre Event",
+            genre = "Jazz"
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns networkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            val actualEventDetail = (result as ResultState.Success).data
+            assertEquals("Jazz", actualEventDetail.genre)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun getEventDetails_WithAgeRestrictionsNotEnforced_ShouldReturnNotEnforced() = runTest {
+        // Arrange
+        val eventId = "age-event"
+        val networkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Age Event",
+            ageEnforced = false
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns networkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            val actualEventDetail = (result as ResultState.Success).data
+            assertEquals("Not Enforced", actualEventDetail.ageRestrictions)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun getEventDetails_WithEmptyInfoFields_ShouldHandleBlankInfo() = runTest {
+        // Arrange
+        val eventId = "empty-info-event"
+        val networkEvent = createMockNetworkEventForDetails(
+            id = eventId,
+            name = "Empty Info Event",
+            info = "",
+            pleaseNote = ""
+        )
+
+        coEvery { 
+            mockApiService.getEventDetails(eventId, "test-api-key")
+        } returns networkEvent
+
+        // Act & Assert
+        repository.getEventDetails(eventId).test {
+            val result = awaitItem()
+            val actualEventDetail = (result as ResultState.Success).data
+            assertNull("Info should be null when blank", actualEventDetail.info)
+            awaitComplete()
+        }
+    }
+
+    // Helper methods for EventDetails tests
+    private fun createMockNetworkEventForDetails(
+        id: String,
+        name: String,
+        info: String? = "Event info",
+        pleaseNote: String? = null,
+        priceMin: Double? = 25.0,
+        priceMax: Double? = 100.0,
+        productNames: List<String> = listOf("General"),
+        genre: String? = "Music",
+        ticketLimitInfo: String? = "6 per person",
+        ageEnforced: Boolean? = false,
+        seatmapUrl: String? = null,
+        venue: NetworkVenue? = createDefaultNetworkVenue()
+    ): NetworkEvent {
+        // Use the existing method and modify specific fields
+        val baseEvent = createMockNetworkEvent(
+            name = name,
+            id = id,
+            venue = venue
+        )
+        
+        // Return a copy with the additional fields for EventDetails
+        return baseEvent.copy(
+            info = info,
+            pleaseNote = pleaseNote,
+            priceRanges = if (priceMin != null && priceMax != null) {
+                listOf(Price(
+                    type = "standard",
+                    currency = "USD",
+                    min = priceMin,
+                    max = priceMax
+                ))
+            } else null,
+            products = if (productNames.isNotEmpty()) {
+                productNames.mapIndexed { index, productName -> 
+                    Product(
+                        name = productName,
+                        id = "product-$index",
+                        url = "https://example.com/product-$index",
+                        type = "product"
+                    )
+                }
+            } else null,
+            seatmap = if (seatmapUrl != null) {
+                Seatmap(
+                    staticUrl = seatmapUrl,
+                    id = "seatmap-1"
+                )
+            } else null,
+            ageRestrictions = if (ageEnforced != null) {
+                AgeRestrictions(
+                    legalAgeEnforced = ageEnforced,
+                    id = "age-restriction-1"
+                )
+            } else null,
+            ticketLimit = if (ticketLimitInfo != null) {
+                TicketLimit(
+                    info = ticketLimitInfo,
+                    id = "ticket-limit-1"
+                )
+            } else null,
+            classifications = if (genre != null) {
+                listOf(Classification(
+                    primary = true,
+                    segment = IdName(id = "1", name = "Music"),
+                    genre = IdName(id = "2", name = genre),
+                    subGenre = IdName(id = "3", name = "Rock"),
+                    type = IdName(id = "4", name = "Event"),
+                    subType = IdName(id = "5", name = "Concert"),
+                    family = false
+                ))
+            } else emptyList()
+        )
+    }
+
+    private fun createExpectedEventDetail(
+        id: String,
+        name: String,
+        imageUrl: String = "https://example.com/image.jpg",
+        date: String = "2024-12-25",
+        time: String = "19:00:00",
+        venue: Venue? = createExpectedVenue(),
+        info: String? = "Event info",
+        seatmapUrl: String? = null,
+        price: String? = "$25.00 - $100.00",
+        products: List<String> = listOf("General"),
+        genre: String? = "Music",
+        ticketLimit: String? = "6 per person",
+        ageRestrictions: String? = "Not Enforced",
+        ticketUrl: String = "https://example.com/event"
+    ): EventDetail {
+        return EventDetail(
+            id = id,
+            name = name,
+            imageUrl = imageUrl,
+            date = date,
+            time = time,
+            venue = venue,
+            info = info,
+            seatmapUrl = seatmapUrl,
+            price = price,
+            products = products,
+            genre = genre,
+            ticketLimit = ticketLimit,
+            ageRestrictions = ageRestrictions,
+            ticketUrl = ticketUrl
         )
     }
 } 

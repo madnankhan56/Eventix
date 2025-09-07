@@ -24,13 +24,6 @@ fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
         }
 }
 
-internal fun <T> ResultState<T>.successOr(fallback: T): T {
-    return (this as? ResultState.Success<T>)?.data ?: fallback
-}
-
-internal fun <T> ResultState<T>.succeeded(): Boolean {
-    return this is ResultState.Success<T>
-}
 internal fun <T> ResultState<T>.error(): Boolean {
     return this is ResultState.Error
 }
@@ -38,12 +31,3 @@ internal fun <T> ResultState<T>.error(): Boolean {
 internal val <T> ResultState<T>.data: T?
     get() = (this as? ResultState.Success<T>)?.data
 
-internal val <T> ResultState<T>.safeData: T?
-    get() = (this as? ResultState.Success<T>)?.data
-
-internal val <T> ResultState<T>.getOrThrowData: T
-    get() = (this as ResultState.Success<T>).data
-
-fun <T> T.isEmptyResponse(): Boolean {
-    return this != null && this is List<*> && this.isEmpty()
-}

@@ -127,12 +127,18 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*Test*.*",
         "android/**/*.*",
         "**/di/*.*",
+        "**/api/model/*.*",
         "**/*_HiltModules*.*",
         "**/*_Factory*.*",
         "**/*_MembersInjector*.*",
         "**/Hilt_*.*",
         "**/theme/*.*",
         "**/ui/*.*",
+        "**/MainActivity*.*",
+        "**/EventixApplication*.*",
+        "**/ComposableSingletons*.*",
+        "**/logging/*.*",
+        "**/Screen*.*"
     )
     
     val debugTree = fileTree("${buildDir}/tmp/kotlin-classes/debug") {
