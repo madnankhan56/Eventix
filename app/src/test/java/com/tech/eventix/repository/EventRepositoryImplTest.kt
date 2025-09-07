@@ -409,30 +409,14 @@ class EventRepositoryImplTest {
             classifications = emptyList(),
             embedded = EventEmbedded(
                 venues = listOf(
-                    NetworkVenue(
+                    createNetworkVenue(
                         name = "Test Arena",
-                        type = "venue",
                         id = "venue-456",
-                        test = false,
-                        url = "https://venue.com",
-                        locale = "en-us",
-                        images = null,
+                        city = "Los Angeles",
+                        state = "CA",
+                        address = "1000 Venue Boulevard",
                         postalCode = "90210",
-                        timezone = "America/Los_Angeles",
-                        city = City(name = "Los Angeles"),
-                        state = State(name = "California", stateCode = "CA"),
-                        country = null,
-                        address = Address(line1 = "1000 Venue Boulevard"),
-                        location = null,
-                        markets = null,
-                        dmas = null,
-                        boxOfficeInfo = null,
-                        parkingDetail = null,
-                        generalInfo = null,
-                        upcomingEvents = null,
-                        ada = null,
-                        classifications = null,
-                        _links = null
+                        timezone = "America/Los_Angeles"
                     )
                 ),
                 attractions = emptyList()
@@ -543,56 +527,24 @@ class EventRepositoryImplTest {
     @Test
     fun toDomain_WithMultipleVenues_ShouldUseFirstVenue() {
         // Arrange
-        val venue1 = NetworkVenue(
+        val venue1 = createNetworkVenue(
             name = "First Venue",
-            type = "venue",
             id = "venue-1",
-            test = false,
-            url = "https://venue1.com",
-            locale = "en-us",
-            images = null,
+            city = "First City",
+            state = "FS",
+            address = "123 First Street",
             postalCode = "12345",
-            timezone = "America/New_York",
-            city = City(name = "First City"),
-            state = State(name = "First State", stateCode = "FS"),
-            country = null,
-            address = Address(line1 = "123 First Street"),
-            location = null,
-            markets = null,
-            dmas = null,
-            boxOfficeInfo = null,
-            parkingDetail = null,
-            generalInfo = null,
-            upcomingEvents = null,
-            ada = null,
-            classifications = null,
-            _links = null
+            timezone = "America/New_York"
         )
 
-        val venue2 = NetworkVenue(
+        val venue2 = createNetworkVenue(
             name = "Second Venue",
-            type = "venue",
             id = "venue-2",
-            test = false,
-            url = "https://venue2.com",
-            locale = "en-us",
-            images = null,
+            city = "Second City",
+            state = "SS",
+            address = "456 Second Avenue",
             postalCode = "67890",
-            timezone = "America/Los_Angeles",
-            city = City(name = "Second City"),
-            state = State(name = "Second State", stateCode = "SS"),
-            country = null,
-            address = Address(line1 = "456 Second Avenue"),
-            location = null,
-            markets = null,
-            dmas = null,
-            boxOfficeInfo = null,
-            parkingDetail = null,
-            generalInfo = null,
-            upcomingEvents = null,
-            ada = null,
-            classifications = null,
-            _links = null
+            timezone = "America/Los_Angeles"
         )
 
         val networkEvent = createBasicNetworkEvent("Event Multiple Venues").copy(
