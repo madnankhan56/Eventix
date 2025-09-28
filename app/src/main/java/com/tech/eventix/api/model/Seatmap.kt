@@ -1,7 +1,9 @@
 package com.tech.eventix.api.model
 
-class Seatmapdata class Seatmap(
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Seatmap(
     val staticUrl: String,
-    val id: String
-) {
-}
+    val id: String? = null
+)

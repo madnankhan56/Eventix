@@ -1,22 +1,27 @@
 package com.tech.eventix.api.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Dates(
-    val start: StartDate,
-    val timezone: String,
-    val status: Status,
-    val spanMultipleDays: Boolean
+    val start: StartDate? = null,
+    val timezone: String? = null,
+    val status: Status? = null,
+    val spanMultipleDays: Boolean? = null
 )
 
+@Serializable
 data class StartDate(
-    val localDate: String,
-    val localTime: String?,
-    val dateTime: String,
-    val dateTBD: Boolean,
-    val dateTBA: Boolean,
-    val timeTBA: Boolean,
-    val noSpecificTime: Boolean
+    val localDate: String? = null,
+    val localTime: String? = null,
+    val dateTime: String? = null,
+    val dateTBD: Boolean? = null,
+    val dateTBA: Boolean? = null,
+    val timeTBA: Boolean? = null,
+    val noSpecificTime: Boolean? = null
 )
 
+@Serializable
 data class Status(
-    val code: String
+    val code: String? = null
 )

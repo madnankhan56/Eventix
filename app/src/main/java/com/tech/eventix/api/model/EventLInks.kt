@@ -1,11 +1,15 @@
 package com.tech.eventix.api.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class EventLinks(
-    val self: Link,
-    val attractions: List<Link>?,
-    val venues: List<Link>?
+    val self: Link? = null,
+    val attractions: List<Link>? = null,
+    val venues: List<Link>? = null
 )
 
+@Serializable
 data class Link(
-    val href: String
+    val href: String? = null
 )

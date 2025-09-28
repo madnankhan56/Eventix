@@ -8,10 +8,10 @@ import com.tech.eventix.domain.Venue
  */
 fun NetworkVenue.toDomainVenue(): Venue {
     return Venue(
-        name = name,
-        city = city.name,
-        state = state.name,
-        address = address.line1,
+        name = name ?: "",
+        city = city?.name ?: "",
+        state = state?.name ?: "",
+        address = address?.line1 ?: "",
         parkingDetail = parkingDetail,
         generalRule = generalInfo?.generalRule,
         childRule = generalInfo?.childRule

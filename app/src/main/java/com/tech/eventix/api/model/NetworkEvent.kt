@@ -1,39 +1,43 @@
 package com.tech.eventix.api.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class NetworkEvent(
     val name: String,
-    val type: String,
+    val type: String? = null,
     val id: String,
-    val test: Boolean,
-    val url: String,
-    val locale: String,
-    val images: List<Image>,
+    val test: Boolean? = null,
+    val url: String? = null,
+    val locale: String? = null,
+    val images: List<Image> = emptyList(),
     val dates: Dates,
-    val classifications: List<Classification>,
-    @SerializedName("_embedded") val embedded: EventEmbedded,
-    val sales: Sales?,
-    val priceRanges: List<Price>?,
-    val products: List<Product>?,
-    val info: String?,
-    val pleaseNote: String?,
-    val promoter: Promoter?,
-    val seatmap: Seatmap?,
-    val accessibility: Accessibility?,
-    val ageRestrictions: AgeRestrictions?,
-    val ticketLimit: TicketLimit?
+    val classifications: List<Classification>? = null,
+    @SerialName("_embedded") val embedded: EventEmbedded,
+    val sales: Sales? = null,
+    val priceRanges: List<Price>? = null,
+    val products: List<Product>? = null,
+    val info: String? = null,
+    val pleaseNote: String? = null,
+    val promoter: Promoter? = null,
+    val seatmap: Seatmap? = null,
+    val accessibility: Accessibility? = null,
+    val ageRestrictions: AgeRestrictions? = null,
+    val ticketLimit: TicketLimit? = null
 )
 
 
+@Serializable
 data class Price(
-    val type: String,
-    val currency: String,
-    val min: Double,
-    val max: Double
+    val type: String? = null,
+    val currency: String? = null,
+    val min: Double? = null,
+    val max: Double? = null
 )
 
+@Serializable
 data class Public(
-    val startDateTime: String?,
-    val endDateTime: String?
+    val startDateTime: String? = null,
+    val endDateTime: String? = null
 )
