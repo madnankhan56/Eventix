@@ -82,8 +82,9 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.coil.compose)
     implementation(libs.hilt.navigation.compose)
-    
-    implementation(project(":networking-kit"))
+
+    debugImplementation(libs.networkingKit.debug)
+    releaseImplementation(libs.networkingKit.release)
 
     debugImplementation(libs.flippernetworkplugin)
     debugImplementation(libs.flipper)

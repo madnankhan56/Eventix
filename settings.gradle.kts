@@ -16,11 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://jitpack.io")
+        }
     }
 }
 
 rootProject.name = "Eventix"
 include(":app")
-include(":networking-kit")
-project(":networking-kit").projectDir = file("../networkingkit/networking-kit")
- 

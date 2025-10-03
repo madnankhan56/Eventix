@@ -27,6 +27,7 @@ soLoader = "0.10.5"
 turbine = "1.1.0"
 kotlinx-coroutines-test = "1.7.3"
 mockk = "1.13.8"
+networkingKit = "1.0.0"
 
 androidAppCompat = "1.4.1"
 androidxCore = "1.7.0"
@@ -109,6 +110,8 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 chucker-debug = {group = "com.github.chuckerteam.chucker", name = "library", version.ref = "chucker" }
 chucker-release = {group = "com.github.chuckerteam.chucker", name = "library-no-op", version.ref = "chucker" }
+networkingKit-debug = {group = "com.github.indestudio.networking-kit", name = "debug", version.ref = "networkingKit" }
+networkingKit-release = {group = "com.github.indestudio.networking-kit", name = "release", version.ref = "networkingKit" }
 
 [bundles]
 mockito = ["mockito-core", "mockito-inline", "mockito-kotlin"]
